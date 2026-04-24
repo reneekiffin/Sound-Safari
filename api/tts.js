@@ -48,7 +48,11 @@ const VOICE_WHITELIST = [
 ];
 
 const ELEVENLABS_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
-const MODEL_ID = 'eleven_multilingual_v2';
+// Flash v2.5: broadly compatible with every standard voice in the
+// library (multilingual_v2 sometimes 4xx's certain voices), faster on
+// short prompts, and roughly half the cost.  Multilingual is still
+// supported in this model so Spanish words from ¡Hola! still work.
+const MODEL_ID = 'eleven_flash_v2_5';
 const MAX_TEXT_LEN = 300;
 
 // Simple sliding-window rate limiter.  Map keyed by IP; value is an
@@ -143,9 +147,14 @@ export default async function handler(req, res) {
     });
 
     if (!elRes.ok) {
-      // Don't leak provider detail to the client.
-      console.error('[tts] upstream status', elRes.status);
-      return res.status(502).json({ error: 'tts_failed' });
+      // Surface the upstream status to the client so we can diagnose
+      // (no key, no body, just the numeric status).  The voice ID in
+      // the response lets the client log which character failed.
+      const upstreamStatus = elRes.status;
+      console.error('[tts] upstream status', upstreamStatus, 'voice', voiceId);
+      return res
+        .status(502)
+        .json({ error: 'tts_failed', upstream: upstreamStatus });
     }
 
     const buffer = Buffer.from(await elRes.arrayBuffer());
