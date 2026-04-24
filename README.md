@@ -66,11 +66,11 @@ Add more rounds to any game by editing the matching file in `src/data/`
 
 ## Audio / voice architecture
 
-Sound Safari uses ElevenLabs for its six voiced characters (Ellie the
-Elephant, Leo the Lion, Zara the Zebra, Skippy the Squirrel, Penny the
-Panda, Sofia the Sloth).  Every other mascot and any feedback line
-without a registered voice falls through to the browser's Web Speech
-API.
+Sound Safari uses ElevenLabs for its four voiced characters — Ellie the
+Elephant, Leo the Lion, Polly the Parrot, and Zara the Zebra.  Every
+other mascot and any feedback line without a registered voice falls
+through to the browser's Web Speech API.  Other characters can be added
+by pasting a voice ID into `src/config/voices.js`.
 
 ### How the server proxy works
 
