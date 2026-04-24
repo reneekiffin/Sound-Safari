@@ -89,7 +89,9 @@ export default function App() {
     if (m > 0 && m > state.lastCelebratedStarMilestone && !endScreen) {
       setMilestone(m);
       play('celebrate');
-      speak(`Wow, ${m} stars! You are a phonics explorer!`);
+      // Leo is the hype voice — milestone celebrations layer his voice
+      // over whatever game the kid was just in.
+      speak(`Wow, ${m} stars! You are a phonics explorer!`, { speaker: 'lion' });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.stars]);
@@ -106,7 +108,10 @@ export default function App() {
   const handleHoverGame = useCallback(
     (game) => {
       if (state.settings.audioEnabled) {
-        speak(game.host.greeting);
+        // Route the greeting through the host's ElevenLabs voice rather
+        // than browser TTS — `game.animal` is the speaker key the
+        // voice-config map uses ('lion', 'elephant', etc.).
+        speak(game.host.greeting, { speaker: game.animal });
       }
     },
     [speak, state.settings.audioEnabled],
