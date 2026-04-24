@@ -55,9 +55,18 @@ export default function App() {
   const [endScreen, setEndScreen] = useState(null);
   const [milestone, setMilestone] = useState(null);
 
+  const cloud = state.settings.ttsProvider === 'openai' && state.settings.ttsApiKey
+    ? {
+        provider: 'openai',
+        apiKey: state.settings.ttsApiKey,
+        voice: state.settings.ttsCloudVoice ?? 'nova',
+      }
+    : null;
+
   const { speak, voices } = useSpeech({
     enabled: state.settings.audioEnabled,
     preferredVoiceURI: state.settings.voiceURI,
+    cloud,
   });
   const { play } = useAudio({ enabled: state.settings.sfxEnabled });
 
@@ -138,6 +147,7 @@ export default function App() {
     audioEnabled: state.settings.audioEnabled,
     sfxEnabled: state.settings.sfxEnabled,
     voiceURI: state.settings.voiceURI,
+    cloud,
   });
 
   const ActiveGame = view.name === VIEW_GAME ? GAME_COMPONENTS[view.gameId] : null;

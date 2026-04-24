@@ -14,7 +14,7 @@ import { getGame } from '../../data/games.js';
 
 const ROUNDS_PER_SESSION = 10;
 
-export default function LetterSounds({ profile, totalStars, difficulty, recent, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled, voiceURI }) {
+export default function LetterSounds({ profile, totalStars, difficulty, recent, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled, voiceURI, cloud }) {
   const game = getGame('letter-sounds');
 
   const { rounds, nextRecent } = useMemo(() => {
@@ -35,7 +35,7 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
   const [wrongLetter, setWrongLetter] = useState(null);
   const [done, setDone] = useState(false);
 
-  const { speak, speakLetterSound } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI });
+  const { speak, speakLetterSound } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
   const { play } = useAudio({ enabled: sfxEnabled });
 
   const currentRound = rounds[index];

@@ -1,39 +1,32 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { playClipIfAvailable } from './useAudioClips.js';
+import { speakCloud, cancelCloud } from './useCloudSpeech.js';
 
-// Kid-friendly TTS wrapper around the Web Speech API.
+// Kid-friendly TTS wrapper with a three-tier strategy:
 //
-// Voice quality on Web Speech varies wildly by device/browser.  We rank the
-// available voices and pick the best "natural" one we can find, then expose
-// a setter so parents can override from the Parent Zone.
+//   1. Recorded clip (useAudioClips)   — if a voice-actor mp3 has been
+//      registered for this key, play it.  Always highest quality.
+//   2. Cloud TTS (useCloudSpeech)       — if a provider+API key is set in
+//      Parent Zone, synthesise via OpenAI's gpt-4o-mini-tts.  Very natural.
+//      Cached so repeat phrases don't cost extra.
+//   3. Web Speech API                   — the browser's built-in voices.
+//      We rank available voices and prefer natural/neural/premium/enhanced
+//      ones.  Parents can pin a specific voice in Parent Zone.
 //
-// For letter sounds specifically, we prefer contextual phrases over bare
-// phonemes — TTS tends to mis-say "ah" as the letter "A", but pronounces
-// "A says ah, like apple" correctly.  The speakLetterSound helper below
-// formats those phrases consistently.
-//
-// Anywhere we have a recorded audio clip keyed by phoneme or word, we play
-// that clip *instead* of TTS via playClipIfAvailable — that's the escape
-// hatch for future voice-actor audio, and it falls back to TTS silently
-// when no clip is present.
+// For letter sounds we also wrap the bare phoneme in a contextual phrase
+// ("A says aaah, like apple") — TTS pronounces real English much better
+// than isolated phonemes, so this is what makes Letter Sounds usable.
 
-const BAD_VOICE_PATTERNS = [
-  /compact/i, // Apple's "Compact" voices are the old robotic ones
-  /novelty/i,
-  /sing/i,
-  /whisper/i,
-];
+const BAD_VOICE_PATTERNS = [/compact/i, /novelty/i, /sing/i, /whisper/i];
 
-// Higher score = better / more natural sound. We stack patterns so a
-// voice that hits multiple wins.
 const VOICE_SCORES = [
   { pattern: /natural/i, score: 50 },
   { pattern: /neural/i, score: 50 },
   { pattern: /premium/i, score: 40 },
   { pattern: /enhanced/i, score: 40 },
   { pattern: /online/i, score: 20 },
-  { pattern: /google/i, score: 18 }, // Chrome's Google voices are decent
-  { pattern: /Samantha/i, score: 30 }, // macOS/iOS Samantha (good quality)
+  { pattern: /google/i, score: 18 },
+  { pattern: /Samantha/i, score: 30 },
   { pattern: /Ava/i, score: 30 },
   { pattern: /Karen/i, score: 22 },
   { pattern: /Moira/i, score: 20 },
@@ -51,8 +44,6 @@ function scoreVoice(voice) {
   for (const { pattern, score: s } of VOICE_SCORES) {
     if (pattern.test(voice.name) || pattern.test(voice.lang)) score += s;
   }
-  // Bonus for female voices by convention — kids' content typically uses
-  // warmer, higher-pitched voices.  This is a soft preference only.
   if (/female|samantha|karen|moira|serena|ava|aria|zira|jenny|susan|allison|victoria/i.test(voice.name)) {
     score += 5;
   }
@@ -72,22 +63,19 @@ export function useSpeech({
   rate = 0.9,
   pitch = 1.1,
   preferredVoiceURI,
+  cloud, // { provider, apiKey, voice, speed }
 } = {}) {
   const [voices, setVoices] = useState([]);
-  const currentUtter = useRef(null);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return undefined;
-    const loadVoices = () => {
-      setVoices(window.speechSynthesis.getVoices());
-    };
+    const loadVoices = () => setVoices(window.speechSynthesis.getVoices());
     loadVoices();
     window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
     return () =>
       window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
   }, []);
 
-  // Ranked list once, so the Parent Zone picker can show best-first.
   const ranked = rankVoices(voices);
 
   const pickVoice = useCallback(() => {
@@ -99,25 +87,43 @@ export function useSpeech({
   }, [voices, ranked, preferredVoiceURI]);
 
   const cancel = useCallback(() => {
+    cancelCloud();
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
-    currentUtter.current = null;
     window.speechSynthesis.cancel();
   }, []);
 
-  const speak = useCallback(
-    (text, opts = {}) => {
-      if (!enabled) return Promise.resolve();
-      if (typeof window === 'undefined' || !window.speechSynthesis)
-        return Promise.resolve();
-      if (!text) return Promise.resolve();
+  const cloudEnabled = Boolean(cloud?.provider && cloud?.apiKey);
 
-      // Recorded clip override — if a phoneme/word audio file has been
-      // registered, play it instead.
+  const speak = useCallback(
+    async (text, opts = {}) => {
+      if (!enabled) return;
+      if (typeof window === 'undefined') return;
+      if (!text) return;
+
+      // Priority 1: a registered recorded clip for this key.
       if (opts.clipKey) {
-        const playedClip = playClipIfAvailable(opts.clipKey);
-        if (playedClip) return playedClip;
+        const played = playClipIfAvailable(opts.clipKey);
+        if (played) {
+          await played;
+          return;
+        }
       }
 
+      // Priority 2: cloud TTS if configured.
+      if (cloudEnabled) {
+        const { played, isFallback } = await speakCloud(text, {
+          provider: cloud.provider,
+          apiKey: cloud.apiKey,
+          voice: cloud.voice,
+          speed: opts.rate ?? cloud.speed ?? 1,
+        });
+        if (played) return;
+        // fall through to Web Speech on error
+        if (!isFallback) return;
+      }
+
+      // Priority 3: Web Speech.
+      if (!window.speechSynthesis) return;
       const utter = new SpeechSynthesisUtterance(String(text));
       const voice = pickVoice();
       if (voice) utter.voice = voice;
@@ -129,57 +135,49 @@ export function useSpeech({
       if (opts.interrupt !== false) {
         window.speechSynthesis.cancel();
       }
-      currentUtter.current = utter;
       window.speechSynthesis.speak(utter);
       return new Promise((resolve) => {
         utter.onend = () => resolve();
         utter.onerror = () => resolve();
       });
     },
-    [enabled, pickVoice, pitch, rate],
+    [enabled, cloudEnabled, cloud?.provider, cloud?.apiKey, cloud?.voice, cloud?.speed, pickVoice, pitch, rate],
   );
 
-  // Speak a phoneme accurately by wrapping it in a carrier phrase.
-  // TTS mishears bare phonemes — "ah" gets read as the letter "A" on many
-  // devices.  "A says ah, like apple" is pronounced correctly by nearly
-  // every voice because each word is real English.
+  // Speak a phoneme by wrapping it in a carrier phrase that TTS handles
+  // gracefully.  "A says aaa, like apple" sounds right on every voice;
+  // bare "aaa" does not.
   const speakLetterSound = useCallback(
     async ({ letter, phoneme, sampleWord }, opts = {}) => {
       if (!enabled) return;
-      // If a recorded clip exists for this letter, just play it.
       const played = playClipIfAvailable(`letter:${letter}`);
       if (played) {
         await played;
         return;
       }
-      const stretched = phoneme.repeat(2); // draw the sound out slightly
+      const stretched = phoneme.repeat(2);
       const phrase = sampleWord
         ? `${letter.toUpperCase()} says ${stretched}, like ${sampleWord}.`
         : `${letter.toUpperCase()} says ${stretched}.`;
-      await speak(phrase, { rate: opts.rate ?? 0.8, ...opts });
+      await speak(phrase, { rate: opts.rate ?? 0.85, ...opts });
     },
     [enabled, speak],
   );
 
-  // Speak phonemes one at a time with a pause between — used by Sound
-  // Blending.  We wrap each phoneme in its contextual word ("m like monkey")
-  // at the medium/hard tiers, and as a bare stretched phoneme ("mmmm") at
-  // easy.  The bare sound is what the kid needs to learn to blend; the
-  // context is only a crutch for the first round if they struggle.
   const speakPhonemeSequence = useCallback(
     async (phonemes, { gap = 420, stretched = true, ...opts } = {}) => {
       if (!enabled) return;
       cancel();
       for (let i = 0; i < phonemes.length; i += 1) {
         const p = phonemes[i];
-        const played = playClipIfAvailable(`phoneme:${p}`);
-        if (played) {
+        const clip = playClipIfAvailable(`phoneme:${p}`);
+        if (clip) {
           // eslint-disable-next-line no-await-in-loop
-          await played;
+          await clip;
         } else {
           const text = stretched ? stretchPhoneme(p) : p;
           // eslint-disable-next-line no-await-in-loop
-          await speak(text, { interrupt: i === 0, rate: 0.75, ...opts });
+          await speak(text, { interrupt: i === 0, rate: 0.8, ...opts });
         }
         if (i < phonemes.length - 1) {
           // eslint-disable-next-line no-await-in-loop
@@ -197,46 +195,19 @@ export function useSpeech({
     cancel,
     voices: ranked,
     allVoices: voices,
+    cloudEnabled,
   };
 }
 
-// Turn a phoneme string into something TTS pronounces closer to the actual
-// sound.  These are empirical fixes; no library does this perfectly.
 function stretchPhoneme(p) {
   const MAP = {
-    a: 'aaa',
-    e: 'eh',
-    i: 'ih',
-    o: 'oh',
-    u: 'uh',
-    b: 'buh',
-    c: 'kuh',
-    d: 'duh',
-    f: 'ffff',
-    g: 'guh',
-    h: 'huh',
-    j: 'juh',
-    k: 'kuh',
-    l: 'luh',
-    m: 'mmmm',
-    n: 'nnnn',
-    p: 'puh',
-    r: 'rrr',
-    s: 'sss',
-    t: 'tuh',
-    v: 'vvv',
-    w: 'wuh',
-    x: 'ks',
-    y: 'yuh',
-    z: 'zzz',
-    sh: 'sh',
-    ch: 'ch',
-    th: 'th',
-    ng: 'ng',
-    qu: 'kwuh',
-    ai: 'ay',
-    oo: 'oo',
-    ee: 'ee',
+    a: 'aaa', e: 'eh', i: 'ih', o: 'oh', u: 'uh',
+    b: 'buh', c: 'kuh', d: 'duh', f: 'ffff', g: 'guh',
+    h: 'huh', j: 'juh', k: 'kuh', l: 'luh', m: 'mmmm',
+    n: 'nnnn', p: 'puh', r: 'rrr', s: 'sss', t: 'tuh',
+    v: 'vvv', w: 'wuh', x: 'ks', y: 'yuh', z: 'zzz',
+    sh: 'sh', ch: 'ch', th: 'th', ng: 'ng', qu: 'kwuh',
+    ai: 'ay', oo: 'oo', ee: 'ee',
   };
   return MAP[p] ?? p;
 }

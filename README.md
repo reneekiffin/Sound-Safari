@@ -66,51 +66,62 @@ Add more rounds to any game by editing the matching file in `src/data/`
 
 ## Audio / voice quality
 
-Web Speech API voices vary wildly in quality by browser and device. Two
-levers to make it sound less robotic:
+Three layers, in priority order, each falling through cleanly when the
+layer above isn't configured:
 
-### 1. Pick a better voice
+### 1. Natural cloud voice (OpenAI TTS) — recommended
 
-Open the Parent Zone (gear icon → parent gate) and choose a specific
-voice from the picker. Recommended picks:
+Open the **Parent Zone → Voice → Natural voice (OpenAI)**, paste an
+OpenAI API key, and pick a voice (Nova / Shimmer / Coral / etc.).
+From then on, every instruction, letter sound, and feedback line is
+synthesised by OpenAI's `gpt-4o-mini-tts` model, which sounds
+dramatically more natural than any browser voice.
 
-- **iPad / iPhone / macOS Safari**: "Samantha (Enhanced)" or any voice
-  labeled "Premium" / "Enhanced".
-- **Chrome / Edge**: any voice labeled "Natural" or "Neural", or "Google
-  US English". Avoid anything labelled "Compact".
-- **Firefox**: voices are OS-provided; pick the highest-quality English
-  voice available.
+- Audio is **cached per-voice-per-phrase on the device**, so repeated
+  phrases ("Try again!", letter prompts, host greetings) cost nothing
+  after the first time.
+- Cost: ~$0.015 per 1k characters. A full 10-round session typically
+  costs a fraction of a cent.
+- The API key is stored **only in this browser's localStorage** and
+  sent only to OpenAI's endpoint.
+- If the call fails (offline, rate-limited, bad key), Sound Safari
+  falls back to Web Speech silently so the game never stalls.
 
-Sound Safari also auto-ranks voices and picks the best one on the device
-by default.
+### 2. Browser voice (Web Speech)
 
-### 2. Drop in recorded audio (optional)
+If no cloud provider is configured, we use the Web Speech API and
+auto-rank available voices to prefer `natural` / `neural` / `premium` /
+`enhanced` ones. Parents can also pin a specific voice in the Parent
+Zone. Recommended picks:
 
-For the highest quality, record or source voice-over clips and register
-them with `registerClip` / `registerClipBundle` (see
-`src/hooks/useAudioClips.js`). When a clip is registered for a given key
-(e.g. `letter:a`, `phoneme:m`, or `word:apple`), Sound Safari plays the
-clip via Howler instead of calling TTS. TTS stays as the fallback for
-any keys that don't have a clip yet.
+- **iPad / iPhone / macOS Safari**: "Samantha (Enhanced)" or any
+  "Premium" / "Enhanced" voice.
+- **Chrome / Edge**: any "Natural" / "Neural" voice, or "Google US
+  English". Avoid anything labelled "Compact".
+- **Firefox**: voices are OS-provided; pick the best English voice.
 
-Typical bundle wiring (somewhere in `src/main.jsx` or a startup file):
+### 3. Recorded voice-over clips (optional override)
+
+The highest quality is pre-recorded audio. Register clips with
+`registerClipBundle` (see `src/hooks/useAudioClips.js`) and any matching
+key plays the clip instead of going out to cloud or Web Speech:
 
 ```js
 import { registerClipBundle } from './hooks/useAudioClips';
 
 registerClipBundle({
   'letter:a': '/audio/letters/a.mp3',
-  'letter:b': '/audio/letters/b.mp3',
   'phoneme:m': '/audio/phonemes/m.mp3',
   'word:apple': '/audio/words/apple.mp3',
 });
 ```
 
-### 3. Contextual phonemes
+### Contextual phonemes
 
-Letter sounds now play as a contextual phrase ("A says aaah, like
-apple") rather than a bare phoneme — TTS pronounces real English
-correctly and this bypasses most of the robotic mis-readings.
+Letter Sounds speaks a carrier phrase ("A says aaah, like apple") rather
+than a bare phoneme. Every TTS model (browser, cloud) pronounces real
+English correctly, so this completely side-steps the robotic
+mis-readings of isolated phonemes.
 
 ## Parent Zone
 
@@ -134,7 +145,10 @@ src/
     games/        LetterSounds, Syllables, SoundBlending, RhymeTime,
                   Opposites, Similarities, Sentences + GameShell
     shared/       Button, Modal, ProgressBar, AudioButton, Celebration,
-                  TopBar, Confetti, AnimalHost (inline SVG characters)
+                  TopBar, Confetti, AnimalHost (emoji placeholders; real
+                  illustrations will replace these once usability is
+                  finalised — AnimalHost's props stay stable so swapping
+                  is a one-file change)
     parent/       ParentGate (math question) + ParentZone (settings)
   hooks/          useSpeech (TTS + contextual phonemes + voice ranking),
                   useAudio (synthesized SFX), useAudioClips (recorded
