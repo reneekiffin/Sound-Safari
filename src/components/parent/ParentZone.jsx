@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Modal from '../shared/Modal.jsx';
 import Button from '../shared/Button.jsx';
 import ProgressBar from '../shared/ProgressBar.jsx';
-import { GAMES } from '../../data/games.js';
+import { GAMES, LEVELS } from '../../data/games.js';
 
 const DIFFICULTIES = [
   { id: 'easy', label: 'Gentle' },
@@ -10,9 +10,17 @@ const DIFFICULTIES = [
   { id: 'hard', label: 'Brave' },
 ];
 
-const AVATARS = ['🦁', '🐒', '🦜', '🐘', '🦒', '🐸', '🦥', '🦓'];
+const AVATARS = ['🦁', '🐒', '🦜', '🐘', '🦒', '🐸', '🦥', '🐅', '🦊', '🐰'];
 
-export default function ParentZone({ open, onClose, state, onUpdateSettings, onSetProfile, onReset }) {
+export default function ParentZone({
+  open,
+  onClose,
+  state,
+  voices,
+  onUpdateSettings,
+  onSetProfile,
+  onReset,
+}) {
   const [confirmReset, setConfirmReset] = useState(false);
 
   return (
@@ -62,6 +70,48 @@ export default function ParentZone({ open, onClose, state, onUpdateSettings, onS
                 </button>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Level (age band) */}
+        <section className="mt-6">
+          <h3 className="font-heading text-lg font-extrabold text-terracotta-600">Level</h3>
+          <p className="font-body text-sm text-terracotta-600/80">
+            Pick an age band to surface the right games on the safari map.
+          </p>
+          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {LEVELS.map((l) => {
+              const active = state.settings.level === l.id;
+              return (
+                <button
+                  key={l.id}
+                  onClick={() => onUpdateSettings({ level: l.id })}
+                  className={[
+                    'focus-ring flex items-center justify-between rounded-2xl border-4 px-4 py-3 text-left transition-colors',
+                    active
+                      ? 'border-terracotta-500 bg-terracotta-400 text-white'
+                      : 'border-terracotta-200 bg-white text-terracotta-600',
+                  ].join(' ')}
+                >
+                  <span className="font-heading text-base font-extrabold">{l.label}</span>
+                  <span className={['font-body text-sm font-bold', active ? 'text-white/90' : 'text-terracotta-500'].join(' ')}>
+                    ages {l.age}
+                  </span>
+                </button>
+              );
+            })}
+            <button
+              onClick={() => onUpdateSettings({ level: 'all' })}
+              className={[
+                'focus-ring flex items-center justify-between rounded-2xl border-4 px-4 py-3 text-left sm:col-span-2',
+                state.settings.level === 'all'
+                  ? 'border-terracotta-500 bg-terracotta-400 text-white'
+                  : 'border-terracotta-200 bg-white text-terracotta-600',
+              ].join(' ')}
+            >
+              <span className="font-heading text-base font-extrabold">Show all games</span>
+              <span className="font-body text-sm font-bold">everything open</span>
+            </button>
           </div>
         </section>
 
@@ -128,6 +178,33 @@ export default function ParentZone({ open, onClose, state, onUpdateSettings, onS
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="flex flex-col gap-1">
+              <span className="font-body text-sm font-bold text-terracotta-500">
+                Voice (browser-dependent; pick the clearest one for your device)
+              </span>
+              <select
+                value={state.settings.voiceURI ?? ''}
+                onChange={(e) =>
+                  onUpdateSettings({ voiceURI: e.target.value || null })
+                }
+                className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-base font-extrabold text-terracotta-600"
+              >
+                <option value="">Auto (best available)</option>
+                {(voices ?? []).map((v) => (
+                  <option key={v.voiceURI} value={v.voiceURI}>
+                    {v.name} ({v.lang})
+                  </option>
+                ))}
+              </select>
+              <span className="font-body text-xs text-terracotta-500/80">
+                Tip: on iPad look for "Samantha (Enhanced)". On Chrome look for
+                a "Google US English" or any "Natural" voice. These sound the
+                least robotic.
+              </span>
+            </label>
           </div>
         </section>
 

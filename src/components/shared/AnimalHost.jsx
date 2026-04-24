@@ -10,6 +10,7 @@ const ANIMALS = {
   elephant: Elephant,
   toucan: Toucan,
   frog: Frog,
+  giraffe: Giraffe,
 };
 
 export default function AnimalHost({
@@ -200,6 +201,40 @@ function Toucan() {
       <circle cx="107" cy="77" r="3" fill="#3a2a1a" />
       {/* Foot */}
       <path d="M95 185 L95 195 M115 185 L115 195" stroke="#f2994a" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function Giraffe() {
+  return (
+    <svg {...baseProps()}>
+      {/* Neck */}
+      <rect x="80" y="75" width="22" height="85" fill="#e8bd4a" stroke="#7a3214" strokeWidth="3" rx="6" />
+      {/* Body */}
+      <ellipse cx="110" cy="160" rx="50" ry="30" fill="#e8bd4a" stroke="#7a3214" strokeWidth="3" />
+      {/* Spots body */}
+      <circle cx="95" cy="160" r="6" fill="#a0441a" />
+      <circle cx="115" cy="155" r="5" fill="#a0441a" />
+      <circle cx="135" cy="165" r="6" fill="#a0441a" />
+      <circle cx="90" cy="110" r="4" fill="#a0441a" />
+      <circle cx="98" cy="130" r="4" fill="#a0441a" />
+      {/* Head */}
+      <ellipse cx="90" cy="60" rx="24" ry="20" fill="#e8bd4a" stroke="#7a3214" strokeWidth="3" />
+      {/* Horns */}
+      <rect x="78" y="38" width="5" height="12" fill="#e8bd4a" stroke="#7a3214" strokeWidth="2" rx="2" />
+      <circle cx="80" cy="36" r="4" fill="#7a3214" />
+      <rect x="96" y="38" width="5" height="12" fill="#e8bd4a" stroke="#7a3214" strokeWidth="2" rx="2" />
+      <circle cx="98" cy="36" r="4" fill="#7a3214" />
+      {/* Ears */}
+      <ellipse cx="68" cy="52" rx="8" ry="5" fill="#e8bd4a" stroke="#7a3214" strokeWidth="2" />
+      {/* Eye */}
+      <circle cx="82" cy="58" r="3" fill="#3a2a1a" />
+      <circle cx="83" cy="57" r="1" fill="#fff" />
+      {/* Muzzle */}
+      <ellipse cx="72" cy="66" rx="6" ry="4" fill="#fbf5e7" />
+      {/* Legs */}
+      <rect x="80" y="180" width="10" height="18" fill="#e8bd4a" stroke="#7a3214" strokeWidth="2" rx="3" />
+      <rect x="130" y="180" width="10" height="18" fill="#e8bd4a" stroke="#7a3214" strokeWidth="2" rx="3" />
     </svg>
   );
 }

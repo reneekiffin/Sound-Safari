@@ -8,6 +8,10 @@ import ParentZone from './components/parent/ParentZone.jsx';
 import LetterSounds from './components/games/LetterSounds.jsx';
 import SoundBlending from './components/games/SoundBlending.jsx';
 import RhymeTime from './components/games/RhymeTime.jsx';
+import Syllables from './components/games/Syllables.jsx';
+import Opposites from './components/games/Opposites.jsx';
+import Similarities from './components/games/Similarities.jsx';
+import Sentences from './components/games/Sentences.jsx';
 import { useProgress } from './hooks/useProgress.js';
 import { useSpeech } from './hooks/useSpeech.js';
 import { useAudio } from './hooks/useAudio.js';
@@ -16,23 +20,47 @@ import { getGame } from './data/games.js';
 const VIEW_HUB = 'hub';
 const VIEW_GAME = 'game';
 
-// Every 5 stars earned (5, 10, 15, ...) we fire a big celebration screen.
+const GAME_COMPONENTS = {
+  'letter-sounds': LetterSounds,
+  syllables: Syllables,
+  'sound-blending': SoundBlending,
+  'rhyme-time': RhymeTime,
+  opposites: Opposites,
+  similarities: Similarities,
+  sentences: Sentences,
+};
+
 function nextMilestone(stars) {
   return Math.floor(stars / 5) * 5;
 }
 
 export default function App() {
-  const { state, recordGameSession, updateSettings, setProfile, markCelebrated, resetProgress } = useProgress();
+  const {
+    state,
+    recordGameSession,
+    updateSettings,
+    setProfile,
+    markCelebrated,
+    resetProgress,
+    getRecentFor,
+  } = useProgress();
+
+  // A single monotonically-increasing session key.  It's part of the game
+  // component's React key, so bumping it on "Play Again" forces a fresh
+  // mount — no more blank screens.
+  const [sessionKey, setSessionKey] = useState(1);
   const [view, setView] = useState({ name: VIEW_HUB });
   const [gateOpen, setGateOpen] = useState(false);
   const [zoneOpen, setZoneOpen] = useState(false);
-  const [endScreen, setEndScreen] = useState(null); // { gameId, score, total, earnedStars }
+  const [endScreen, setEndScreen] = useState(null);
   const [milestone, setMilestone] = useState(null);
 
-  const { speak } = useSpeech({ enabled: state.settings.audioEnabled });
+  const { speak, voices } = useSpeech({
+    enabled: state.settings.audioEnabled,
+    preferredVoiceURI: state.settings.voiceURI,
+  });
   const { play } = useAudio({ enabled: state.settings.sfxEnabled });
 
-  // Fire a "every 5 stars" celebration whenever crossing a new milestone.
   useEffect(() => {
     const m = nextMilestone(state.stars);
     if (m > 0 && m > state.lastCelebratedStarMilestone && !endScreen) {
@@ -43,40 +71,55 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.stars]);
 
-  const handleSelectGame = useCallback((gameId) => {
-    play('tap');
-    setView({ name: VIEW_GAME, gameId });
-  }, [play]);
+  const handleSelectGame = useCallback(
+    (gameId) => {
+      play('tap');
+      setSessionKey((k) => k + 1); // fresh mount every time a game is entered
+      setView({ name: VIEW_GAME, gameId });
+    },
+    [play],
+  );
 
-  const handleHoverGame = useCallback((game) => {
-    if (state.settings.audioEnabled) {
-      speak(game.host.greeting);
-    }
-  }, [speak, state.settings.audioEnabled]);
+  const handleHoverGame = useCallback(
+    (game) => {
+      if (state.settings.audioEnabled) {
+        speak(game.host.greeting);
+      }
+    },
+    [speak, state.settings.audioEnabled],
+  );
 
   const handleExitGame = useCallback(() => {
     setView({ name: VIEW_HUB });
   }, []);
 
   const handleFinishGame = useCallback(
-    ({ earnedStars, score, total }) => {
+    ({ earnedStars, score, total, newRecent }) => {
       const gameId = view.gameId;
-      recordGameSession(gameId, { earnedStars, score });
+      recordGameSession(gameId, { earnedStars, score, newRecent });
       setEndScreen({ gameId, score, total, earnedStars });
     },
     [recordGameSession, view.gameId],
   );
 
-  const closeEndScreen = (playAgain = false) => {
+  // Fix for the "Play Again" blank screen:
+  //   Previously we bounced hub -> game with a timeout, but the underlying
+  //   game component retained done=true from the previous session and
+  //   rendered null.  Now we bump sessionKey, which is part of the
+  //   component's key, so the old instance unmounts and a fresh one
+  //   mounts with clean state.
+  const handleReplay = () => {
     const nextGameId = endScreen?.gameId;
     setEndScreen(null);
-    if (playAgain && nextGameId) {
-      // Re-mount the game with a new session by bouncing through hub briefly.
-      setView({ name: VIEW_HUB });
-      setTimeout(() => setView({ name: VIEW_GAME, gameId: nextGameId }), 50);
-    } else {
-      setView({ name: VIEW_HUB });
+    if (nextGameId) {
+      setSessionKey((k) => k + 1);
+      setView({ name: VIEW_GAME, gameId: nextGameId });
     }
+  };
+
+  const handleBackToMap = () => {
+    setEndScreen(null);
+    setView({ name: VIEW_HUB });
   };
 
   const dismissMilestone = () => {
@@ -84,17 +127,20 @@ export default function App() {
     setMilestone(null);
   };
 
-  // Common props every game component wants.
-  const gameProps = {
+  const makeGameProps = (gameId) => ({
     profile: { childName: state.childName, avatar: state.avatar },
     totalStars: state.stars,
     difficulty: state.settings.difficulty,
+    recent: getRecentFor(gameId),
     onExit: handleExitGame,
     onFinish: handleFinishGame,
     onOpenSettings: () => setGateOpen(true),
     audioEnabled: state.settings.audioEnabled,
     sfxEnabled: state.settings.sfxEnabled,
-  };
+    voiceURI: state.settings.voiceURI,
+  });
+
+  const ActiveGame = view.name === VIEW_GAME ? GAME_COMPONENTS[view.gameId] : null;
 
   return (
     <div className="relative flex min-h-[100dvh] flex-1 flex-col">
@@ -115,48 +161,26 @@ export default function App() {
             />
             <SafariMap
               progress={state}
+              level={state.settings.level}
+              onChangeLevel={(level) => updateSettings({ level })}
               onSelectGame={handleSelectGame}
               onHoverGame={handleHoverGame}
             />
           </motion.div>
         )}
 
-        {view.name === VIEW_GAME && view.gameId === 'letter-sounds' && (
+        {view.name === VIEW_GAME && ActiveGame && (
           <motion.div
-            key="letter-sounds"
-            initial={{ opacity: 0, rotate: -2, y: 16 }}
-            animate={{ opacity: 1, rotate: 0, y: 0 }}
+            // The sessionKey in the key is the crucial bit for "Play Again"
+            // — when the key changes React remounts the whole tree cleanly.
+            key={`${view.gameId}-${sessionKey}`}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={{ type: 'spring', stiffness: 160, damping: 22 }}
             className="flex flex-1 flex-col"
           >
-            <LetterSounds {...gameProps} />
-          </motion.div>
-        )}
-
-        {view.name === VIEW_GAME && view.gameId === 'sound-blending' && (
-          <motion.div
-            key="sound-blending"
-            initial={{ opacity: 0, rotate: 2, y: 16 }}
-            animate={{ opacity: 1, rotate: 0, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ type: 'spring', stiffness: 160, damping: 22 }}
-            className="flex flex-1 flex-col"
-          >
-            <SoundBlending {...gameProps} />
-          </motion.div>
-        )}
-
-        {view.name === VIEW_GAME && view.gameId === 'rhyme-time' && (
-          <motion.div
-            key="rhyme-time"
-            initial={{ opacity: 0, rotate: -1, y: 16 }}
-            animate={{ opacity: 1, rotate: 0, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ type: 'spring', stiffness: 160, damping: 22 }}
-            className="flex flex-1 flex-col"
-          >
-            <RhymeTime {...gameProps} />
+            <ActiveGame {...makeGameProps(view.gameId)} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -170,8 +194,8 @@ export default function App() {
             ? `You got ${endScreen.score} out of ${endScreen.total} right!`
             : ''
         }
-        onContinue={() => closeEndScreen(false)}
-        onReplay={() => closeEndScreen(true)}
+        onContinue={handleBackToMap}
+        onReplay={handleReplay}
         continueLabel="Back to the map"
         replayLabel="Play again"
       />
@@ -197,6 +221,7 @@ export default function App() {
         open={zoneOpen}
         onClose={() => setZoneOpen(false)}
         state={state}
+        voices={voices}
         onUpdateSettings={updateSettings}
         onSetProfile={setProfile}
         onReset={resetProgress}
@@ -207,14 +232,14 @@ export default function App() {
 
 function endGameEmoji(gameId) {
   const game = getGame(gameId);
-  switch (game?.host.name) {
-    case 'Leo the Lion':
-      return '🦁';
-    case 'Momo the Monkey':
-      return '🐒';
-    case 'Polly the Parrot':
-      return '🦜';
-    default:
-      return '🎉';
-  }
+  const map = {
+    lion: '🦁',
+    monkey: '🐒',
+    parrot: '🦜',
+    elephant: '🐘',
+    toucan: '🦜',
+    frog: '🐸',
+    giraffe: '🦒',
+  };
+  return map[game?.animal] ?? '🎉';
 }
