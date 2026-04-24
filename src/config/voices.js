@@ -143,12 +143,21 @@ export const CHARACTER_VOICES = {
       use_speaker_boost: true,
     },
   },
+  monkey: {
+    name: 'Momo',
+    description: 'Sound Blending host — playful, energetic',
+    voiceId: 'hO2yZ8lxM3axUxL8OeKX',
+    settings: {
+      stability: 0.4,
+      similarity_boost: 0.75,
+      style: 0.45,
+      use_speaker_boost: true,
+    },
+  },
 
-  // Intentionally not voiced right now — Web Speech fallback keeps
-  // their games fully functional.  Un-comment the relevant block and
-  // paste a voice ID to bring a character online.
-  //
-  // monkey: { name: 'Momo', voiceId: '_PLACEHOLDER', settings: { stability: 0.4, similarity_boost: 0.75, style: 0.45, use_speaker_boost: true } },
+  // Every mascot now has a voice.  To add new characters in the future,
+  // append an entry here AND add the matching voice ID to the whitelist
+  // in api/tts.js.
 };
 
 // Whitelist of voice IDs the server will accept.  Imported by
