@@ -16,6 +16,7 @@ import OddOneOut from './components/games/OddOneOut.jsx';
 import VennDiagrams from './components/games/VennDiagrams.jsx';
 import WordBuilders from './components/games/WordBuilders.jsx';
 import Homophones from './components/games/Homophones.jsx';
+import Spanish from './components/games/Spanish.jsx';
 import { useProgress } from './hooks/useProgress.js';
 import { useSpeech } from './hooks/useSpeech.js';
 import { useAudio } from './hooks/useAudio.js';
@@ -36,6 +37,7 @@ const GAME_COMPONENTS = {
   'venn-diagrams': VennDiagrams,
   'word-builders': WordBuilders,
   homophones: Homophones,
+  spanish: Spanish,
 };
 
 function nextMilestone(stars) {
@@ -276,6 +278,7 @@ function endGameEmoji(gameId) {
     owl: '🦉',
     panda: '🐼',
     squirrel: '🐿️',
+    sloth: '🦥',
   };
   return map[game?.animal] ?? '🎉';
 }

@@ -194,6 +194,21 @@ export const GAMES = [
     accent: '#a0441a',
     bg: 'linear-gradient(160deg, #fbefd4 0%, #d9b384 100%)',
   },
+  {
+    id: 'spanish',
+    title: '¡Hola!',
+    subtitle: 'Spanish words and pictures — no pressure, just fun!',
+    ageRange: '3–10',
+    levels: ['little', 'growing', 'brave', 'big'],
+    host: {
+      name: 'Sofia the Sloth',
+      greeting: "¡Hola!  I'm Sofia.  Let's learn Spanish words together!",
+    },
+    animal: 'sloth',
+    locationLabel: 'Kapok Canopy',
+    accent: '#c45a26',
+    bg: 'linear-gradient(160deg, #fef3e5 0%, #e8bd4a 100%)',
+  },
 ];
 
 export const getGame = (id) => GAMES.find((g) => g.id === id);

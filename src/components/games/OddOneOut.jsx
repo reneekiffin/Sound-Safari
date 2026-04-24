@@ -23,7 +23,16 @@ export default function OddOneOut({ profile, totalStars, difficulty, recent, onE
 
   const { rounds, nextRecent } = useMemo(() => {
     const pool = ODD_ONE_OUT_ROUNDS[difficulty] ?? ODD_ONE_OUT_ROUNDS.easy;
-    return pickSession({ pool, recent, size: ROUNDS_PER_SESSION, getId: (r) => r.id });
+    // Category-balanced so a session spreads across shapes, colours,
+    // animals, food, vehicles — kids don't get ten rounds in a row
+    // from the same theme.
+    return pickSession({
+      pool,
+      recent,
+      size: ROUNDS_PER_SESSION,
+      getId: (r) => r.id,
+      balanceBy: 'category',
+    });
   }, [difficulty, recent]);
 
   const [index, setIndex] = useState(0);

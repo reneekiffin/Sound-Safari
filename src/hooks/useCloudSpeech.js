@@ -49,6 +49,7 @@ export const MASCOT_VOICES = {
     owl: 'sage',        // Ollie — wise, thoughtful
     panda: 'coral',     // Penny — cuddly, warm
     squirrel: 'shimmer',// Skippy — quick, clever
+    sloth: 'sage',      // Sofia — soft, patient, low-pressure
   },
   elevenlabs: {
     lion: EL_VOICES.adam,        // Leo — deep male
@@ -62,6 +63,7 @@ export const MASCOT_VOICES = {
     owl: EL_VOICES.arnold,       // Ollie — wise, steady
     panda: EL_VOICES.rachel,     // Penny — cuddly, warm
     squirrel: EL_VOICES.josh,    // Skippy — fast, clever
+    sloth: EL_VOICES.rachel,     // Sofia — calm, patient
   },
 };
 

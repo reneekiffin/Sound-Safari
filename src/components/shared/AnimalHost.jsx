@@ -21,6 +21,7 @@ const ANIMAL_EMOJI = {
   owl: '🦉',
   panda: '🐼',
   squirrel: '🐿️',
+  sloth: '🦥',
 };
 
 export default function AnimalHost({

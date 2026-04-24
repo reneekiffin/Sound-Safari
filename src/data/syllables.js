@@ -51,17 +51,38 @@ const MEDIUM = [
   { id: 'build-computer', type: 'build', word: 'computer', emoji: '💻', syllables: ['com', 'pu', 'ter'] },
   { id: 'build-astronaut', type: 'build', word: 'astronaut', emoji: '👨‍🚀', syllables: ['as', 'tro', 'naut'] },
   { id: 'build-volcano', type: 'build', word: 'volcano', emoji: '🌋', syllables: ['vol', 'ca', 'no'] },
+
+  // A couple of gentle "break" intro rounds for medium difficulty.
+  { id: 'break-rabbit', type: 'break', word: 'rabbit', emoji: '🐇', syllables: ['rab', 'bit'], breaks: [3] },
+  { id: 'break-tiger', type: 'break', word: 'tiger', emoji: '🐅', syllables: ['ti', 'ger'], breaks: [2] },
+  { id: 'break-apple', type: 'break', word: 'apple', emoji: '🍎', syllables: ['ap', 'ple'], breaks: [2] },
 ];
 
 const HARD = [
   { id: 'hippopotamus', type: 'count', word: 'hippopotamus', emoji: '🦛', syllables: ['hip', 'po', 'pot', 'a', 'mus'], count: 5 },
-  { id: 'caterpillar2', type: 'count', word: 'rhinoceros', emoji: '🦏', syllables: ['rhi', 'no', 'ce', 'ros'], count: 4 },
+  { id: 'rhinoceros', type: 'count', word: 'rhinoceros', emoji: '🦏', syllables: ['rhi', 'no', 'ce', 'ros'], count: 4 },
   { id: 'invisible', type: 'count', word: 'invisible', emoji: '👻', syllables: ['in', 'vis', 'i', 'ble'], count: 4 },
 
   { id: 'build-kangaroo', type: 'build', word: 'kangaroo', emoji: '🦘', syllables: ['kan', 'ga', 'roo'] },
   { id: 'build-caterpillar', type: 'build', word: 'caterpillar', emoji: '🐛', syllables: ['cat', 'er', 'pil', 'lar'] },
   { id: 'build-hippopotamus', type: 'build', word: 'hippopotamus', emoji: '🦛', syllables: ['hip', 'po', 'pot', 'a', 'mus'] },
   { id: 'build-dinosaur', type: 'build', word: 'dinosaur', emoji: '🦕', syllables: ['di', 'no', 'saur'] },
+
+  // "break" mode — kid taps the spaces between letters to insert
+  // syllable breaks.  Richer than picking a number; tests that they
+  // actually know where the beats fall.  `breaks` are the letter
+  // indices AFTER which a break should appear (zero-indexed).
+  //   e.g. "butterfly" → [3, 6] gives "but|ter|fly"
+  { id: 'break-butterfly', type: 'break', word: 'butterfly', emoji: '🦋', syllables: ['but', 'ter', 'fly'], breaks: [3, 6] },
+  { id: 'break-monkey', type: 'break', word: 'monkey', emoji: '🐒', syllables: ['mon', 'key'], breaks: [3] },
+  { id: 'break-elephant', type: 'break', word: 'elephant', emoji: '🐘', syllables: ['el', 'e', 'phant'], breaks: [2, 3] },
+  { id: 'break-dinosaur', type: 'break', word: 'dinosaur', emoji: '🦕', syllables: ['di', 'no', 'saur'], breaks: [2, 4] },
+  { id: 'break-rainbow', type: 'break', word: 'rainbow', emoji: '🌈', syllables: ['rain', 'bow'], breaks: [4] },
+  { id: 'break-umbrella', type: 'break', word: 'umbrella', emoji: '☂️', syllables: ['um', 'brel', 'la'], breaks: [2, 6] },
+  { id: 'break-computer', type: 'break', word: 'computer', emoji: '💻', syllables: ['com', 'pu', 'ter'], breaks: [3, 5] },
+  { id: 'break-watermelon', type: 'break', word: 'watermelon', emoji: '🍉', syllables: ['wa', 'ter', 'mel', 'on'], breaks: [2, 5, 8] },
+  { id: 'break-alligator', type: 'break', word: 'alligator', emoji: '🐊', syllables: ['al', 'li', 'ga', 'tor'], breaks: [2, 4, 6] },
+  { id: 'break-volcano', type: 'break', word: 'volcano', emoji: '🌋', syllables: ['vol', 'ca', 'no'], breaks: [3, 5] },
 ];
 
 export const SYLLABLES_ROUNDS = { easy: EASY, medium: MEDIUM, hard: HARD };

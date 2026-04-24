@@ -127,12 +127,18 @@ export function useSpeech({
       // Priority 3: Web Speech.
       if (!window.speechSynthesis) return;
       const utter = new SpeechSynthesisUtterance(String(text));
-      const voice = pickVoice();
+      // When a specific language was requested (e.g. Spanish rounds),
+      // prefer a voice that matches it.  Falls back to the default
+      // English voice picker if no matching voice is installed.
+      const langPreferredVoice = opts.lang
+        ? voices.find((v) => v.lang?.toLowerCase().startsWith(opts.lang.toLowerCase()))
+        : null;
+      const voice = langPreferredVoice ?? pickVoice();
       if (voice) utter.voice = voice;
       utter.rate = opts.rate ?? rate;
       utter.pitch = opts.pitch ?? pitch;
       utter.volume = opts.volume ?? 1;
-      utter.lang = voice?.lang ?? 'en-US';
+      utter.lang = opts.lang ?? voice?.lang ?? 'en-US';
 
       if (opts.interrupt !== false) {
         window.speechSynthesis.cancel();
@@ -146,9 +152,17 @@ export function useSpeech({
     [enabled, cloudEnabled, cloud?.provider, cloud?.apiKey, cloud?.voice, cloud?.speed, speaker, pickVoice, pitch, rate],
   );
 
-  // Speak a phoneme by wrapping it in a carrier phrase that TTS handles
-  // gracefully.  "A says aaa, like apple" sounds right on every voice;
-  // bare "aaa" does not.
+  // Speak a phoneme followed by an example word.  TTS mangles bare
+  // phonemes in isolation, but happily pronounces real English — so we
+  // chain the stretched sound and the example word with a brief pause.
+  //
+  // Per user feedback: we used to say "U says uh, like umbrella" —
+  // Leo's name + "says" is already in the surrounding UX, so dropping
+  // the redundant letter-name announcement keeps the mascot's voice
+  // focused on the sound itself.  Now it's just
+  //   "uh ... umbrella."
+  // which reads as "[sound] followed by [word]" — exactly what kids
+  // need to map the sound onto a real word.
   const speakLetterSound = useCallback(
     async ({ letter, phoneme, sampleWord }, opts = {}) => {
       if (!enabled) return;
@@ -158,9 +172,7 @@ export function useSpeech({
         return;
       }
       const stretched = phoneme.repeat(2);
-      const phrase = sampleWord
-        ? `${letter.toUpperCase()} says ${stretched}, like ${sampleWord}.`
-        : `${letter.toUpperCase()} says ${stretched}.`;
+      const phrase = sampleWord ? `${stretched}... ${sampleWord}.` : `${stretched}.`;
       await speak(phrase, { rate: opts.rate ?? 0.85, ...opts });
     },
     [enabled, speak],
