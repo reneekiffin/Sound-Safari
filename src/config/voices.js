@@ -69,7 +69,7 @@ export const CHARACTER_VOICES = {
   frog: {
     name: 'Finn',
     description: 'Same-Same host — spunky, lively',
-    voiceId: 'gA870ILGhb2a1FhxtmLH',
+    voiceId: 'EaX6rnyDKjJx35tchi80',
     settings: {
       stability: 0.45,
       similarity_boost: 0.78,
