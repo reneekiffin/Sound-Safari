@@ -203,11 +203,12 @@ function PictureCard({ option, state, onTap, onPreview }) {
           : 'border-terracotta-200 hover:border-terracotta-300',
       ].join(' ')}
     >
-      <span className="text-6xl sm:text-7xl" aria-hidden="true">
+      {/* Picture only — deliberately no word label underneath.  Kids have
+          to blend the phonemes and identify the picture, not just match
+          the written word.  Promotes genuine phonemic awareness over
+          pattern-matching. */}
+      <span className="text-7xl sm:text-8xl" aria-hidden="true">
         {option.emoji}
-      </span>
-      <span className="mt-2 font-letter text-2xl font-bold text-terracotta-600">
-        {option.word}
       </span>
     </motion.button>
   );
