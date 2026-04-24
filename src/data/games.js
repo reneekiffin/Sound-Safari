@@ -134,6 +134,36 @@ export const GAMES = [
     accent: '#c45a26',
     bg: 'linear-gradient(160deg, #fdf0d8 0%, #e0a36a 100%)',
   },
+  {
+    id: 'odd-one-out',
+    title: 'Odd One Out',
+    subtitle: 'Which one does not belong?',
+    ageRange: '3–6',
+    levels: ['little', 'growing'],
+    host: {
+      name: 'Zara the Zebra',
+      greeting: "Hi, I'm Zara! Can you spot the different one?",
+    },
+    animal: 'zebra',
+    locationLabel: 'Striped Savanna',
+    accent: '#3a2a1a',
+    bg: 'linear-gradient(160deg, #f4ecdc 0%, #d7c9a8 100%)',
+  },
+  {
+    id: 'venn-diagrams',
+    title: 'Venn Venn!',
+    subtitle: 'Put things in the right circle!',
+    ageRange: '6–10',
+    levels: ['growing', 'brave', 'big'],
+    host: {
+      name: 'Ollie the Owl',
+      greeting: "Whooo! I'm Ollie. Let's sort things into circles!",
+    },
+    animal: 'owl',
+    locationLabel: 'Wisdom Grove',
+    accent: '#2aa29a',
+    bg: 'linear-gradient(160deg, #e3f0fb 0%, #9fc5de 100%)',
+  },
 ];
 
 export const getGame = (id) => GAMES.find((g) => g.id === id);
