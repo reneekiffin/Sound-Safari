@@ -66,14 +66,28 @@ export const CHARACTER_VOICES = {
       use_speaker_boost: true,
     },
   },
+  sloth: {
+    name: 'Sofia',
+    description: 'Spanish host — bright, friendly (shares Polly\'s voice for now)',
+    // Reuses Polly's voice for the Spanish game.  Sharing a voice across
+    // characters is fine — the server whitelist is derived from voice
+    // IDs and duplicates are harmless.  Swap in a dedicated voice ID
+    // here any time Sofia should sound distinct.
+    voiceId: 'PoHUWWWMHFrA8z7Q88pu',
+    settings: {
+      stability: 0.55,
+      similarity_boost: 0.8,
+      style: 0.3,
+      use_speaker_boost: true,
+    },
+  },
 
   // Intentionally not voiced right now — Web Speech fallback keeps
   // their games fully functional.  Un-comment the relevant block and
   // paste a voice ID to bring a character online.
   //
-  // squirrel: { name: 'Skippy',   voiceId: '_PLACEHOLDER', settings: { stability: 0.35, similarity_boost: 0.7,  style: 0.45, use_speaker_boost: true } },
-  // panda:    { name: 'Penny',    voiceId: '_PLACEHOLDER', settings: { stability: 0.5,  similarity_boost: 0.8,  style: 0.3,  use_speaker_boost: true } },
-  // sloth:    { name: 'Sofia',    voiceId: '_PLACEHOLDER', settings: { stability: 0.7,  similarity_boost: 0.85, style: 0.15, use_speaker_boost: true } },
+  // squirrel: { name: 'Skippy', voiceId: '_PLACEHOLDER', settings: { stability: 0.35, similarity_boost: 0.7, style: 0.45, use_speaker_boost: true } },
+  // panda:    { name: 'Penny',  voiceId: '_PLACEHOLDER', settings: { stability: 0.5,  similarity_boost: 0.8, style: 0.3,  use_speaker_boost: true } },
   // monkey, toucan, frog, giraffe, owl — add here as you go.
 };
 

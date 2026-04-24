@@ -66,8 +66,9 @@ Add more rounds to any game by editing the matching file in `src/data/`
 
 ## Audio / voice architecture
 
-Sound Safari uses ElevenLabs for its four voiced characters — Ellie the
-Elephant, Leo the Lion, Polly the Parrot, and Zara the Zebra.  Every
+Sound Safari uses ElevenLabs for its five voiced characters — Ellie the
+Elephant, Leo the Lion, Polly the Parrot, Zara the Zebra, and Sofia
+the Sloth (Spanish host, currently sharing Polly's voice).  Every
 other mascot and any feedback line without a registered voice falls
 through to the browser's Web Speech API.  Other characters can be added
 by pasting a voice ID into `src/config/voices.js`.
