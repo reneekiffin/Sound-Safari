@@ -38,6 +38,7 @@ const VOICE_WHITELIST = [
   'MYiFAKeVwcvm4z9VsFAR', // Leo    (lion)
   'PoHUWWWMHFrA8z7Q88pu', // Polly  (parrot) + Sofia (sloth) — shared voice
   'b8gbDO0ybjX1VA89pBdX', // Zara   (zebra)
+  '9yzdeviXkFddZ4Oz8Mok', // Gigi   (giraffe)
 ];
 
 const ELEVENLABS_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
