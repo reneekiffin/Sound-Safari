@@ -36,7 +36,7 @@ export const CHARACTER_VOICES = {
   lion: {
     name: 'Leo',
     description: 'Cool big brother — hypes correct answers',
-    voiceId: 'goT3UYdM9bhm0n2lmKQx',
+    voiceId: 'MYiFAKeVwcvm4z9VsFAR',
     settings: {
       stability: 0.4,
       similarity_boost: 0.75,
