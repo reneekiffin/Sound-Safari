@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import AudioButton from '../shared/AudioButton.jsx';
 import Celebration from '../shared/Celebration.jsx';
-import AnimalHost from '../shared/AnimalHost.jsx';
+import PromptHeader from '../shared/PromptHeader.jsx';
 import GameShell from './GameShell.jsx';
 import { LETTER_SOUNDS_ROUNDS, SAMPLE_WORDS } from '../../data/letterSounds.js';
 import { pickSession, shuffleOptions } from '../../data/session.js';
@@ -102,28 +102,14 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
       onOpenSettings={onOpenSettings}
     >
       <div className="flex flex-col items-center text-center">
-        <div className="relative flex h-40 w-full items-center justify-center sm:h-48">
-          <motion.div className="absolute left-2 top-0 sm:left-8">
-            <AnimalHost type="lion" size={140} happy={celebrateRound} />
-          </motion.div>
-          <motion.div
-            key={currentRound.letter}
-            initial={{ scale: 0.6, y: 10, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 250, damping: 16 }}
-            className="rounded-[40px] bg-white/90 px-8 py-5 shadow-card"
-          >
-            <p className="font-body text-sm font-bold uppercase tracking-wide text-terracotta-500">
-              Leo says...
-            </p>
-            <p className="font-display text-4xl text-terracotta-600 sm:text-5xl">
-              “{currentRound.phoneme}”
-            </p>
-            <p className="mt-1 font-body text-sm text-terracotta-600/80">
-              like {currentRound.sampleWord}
-            </p>
-          </motion.div>
-        </div>
+        <PromptHeader animal="lion" happy={celebrateRound} hostLabel="Leo says...">
+          <p className="mt-1 font-display text-4xl text-terracotta-600 sm:text-5xl">
+            “{currentRound.phoneme}”
+          </p>
+          <p className="mt-1 font-body text-sm text-terracotta-600/80">
+            like {currentRound.sampleWord}
+          </p>
+        </PromptHeader>
 
         <div className="mt-2 flex items-center gap-4">
           <AudioButton onPress={replaySound} label="Play the sound again" />

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import AudioButton from '../shared/AudioButton.jsx';
 import Celebration from '../shared/Celebration.jsx';
-import AnimalHost from '../shared/AnimalHost.jsx';
+import PromptHeader from '../shared/PromptHeader.jsx';
 import GameShell from './GameShell.jsx';
 import { SOUND_BLENDING_ROUNDS } from '../../data/soundBlending.js';
 import { pickSession } from '../../data/session.js';
@@ -110,12 +110,8 @@ export default function SoundBlending({ profile, totalStars, difficulty, recent,
       onOpenSettings={onOpenSettings}
     >
       <div className="flex flex-col items-center text-center">
-        <div className="relative flex h-44 w-full items-center justify-center">
-          <div className="absolute left-2 top-0 sm:left-6">
-            <AnimalHost type="monkey" size={140} happy={celebrateRound} />
-          </div>
-
-          <motion.div className="flex flex-wrap items-center justify-center gap-2 rounded-[36px] bg-white/90 px-6 py-5 shadow-card">
+        <PromptHeader animal="monkey" happy={celebrateRound} hostLabel="Momo says...">
+          <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
             {round.phonemes.map((p, i) => (
               <motion.span
                 key={`${round.id}-${i}`}
@@ -125,13 +121,13 @@ export default function SoundBlending({ profile, totalStars, difficulty, recent,
                     : { scale: 1, color: '#7a3214' }
                 }
                 transition={{ duration: 0.5 }}
-                className="font-letter text-4xl font-bold sm:text-5xl"
+                className="font-letter text-3xl font-bold sm:text-4xl"
               >
                 {p}
               </motion.span>
             ))}
-          </motion.div>
-        </div>
+          </div>
+        </PromptHeader>
 
         <div className="mt-2 flex items-center gap-4">
           <AudioButton

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { playClipIfAvailable } from './useAudioClips.js';
 import { speakCloud, cancelCloud } from './useCloudSpeech.js';
 
@@ -188,10 +188,27 @@ export function useSpeech({
     [cancel, enabled, speak],
   );
 
+  // Stabilised references so consumers don't need to worry about identity
+  // thrash.  The underlying functions are re-created whenever the settings
+  // or voices change, but these wrappers keep a stable identity for the
+  // lifetime of the component — so effects like "speak the prompt once per
+  // round" can depend on round alone, not on speak.
+  const speakRef = useRef(speak);
+  useEffect(() => { speakRef.current = speak; }, [speak]);
+  const speakLetterSoundRef = useRef(speakLetterSound);
+  useEffect(() => { speakLetterSoundRef.current = speakLetterSound; }, [speakLetterSound]);
+  const speakPhonemeSequenceRef = useRef(speakPhonemeSequence);
+  useEffect(() => { speakPhonemeSequenceRef.current = speakPhonemeSequence; }, [speakPhonemeSequence]);
+
+  const stableSpeak = useRef((...args) => speakRef.current?.(...args)).current;
+  const stableSpeakLetterSound = useRef((...args) => speakLetterSoundRef.current?.(...args)).current;
+  const stableSpeakPhonemeSequence = useRef((...args) => speakPhonemeSequenceRef.current?.(...args)).current;
+
   return {
-    speak,
-    speakLetterSound,
-    speakPhonemeSequence,
+    // Stable-identity wrappers: safe to put in useEffect deps.
+    speak: stableSpeak,
+    speakLetterSound: stableSpeakLetterSound,
+    speakPhonemeSequence: stableSpeakPhonemeSequence,
     cancel,
     voices: ranked,
     allVoices: voices,

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import LocationCard from './LocationCard.jsx';
-import { GAMES, LEVELS, gamesForLevel } from '../../data/games.js';
+import LevelDropdown from './LevelDropdown.jsx';
+import { GAMES, gamesForLevel } from '../../data/games.js';
 
 // The "map" is a grid of storybook cards framed by a jungle backdrop.  A
 // level filter at the top lets kids (or parents) scope the hub to an age
@@ -31,7 +32,7 @@ export default function SafariMap({ progress, onSelectGame, onHoverGame, level, 
           </p>
         </div>
 
-        <LevelBar level={level} onChange={onChangeLevel} />
+        <LevelDropdown level={level} onChange={onChangeLevel} />
 
         <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {visibleGames.map((game) => {
@@ -56,45 +57,6 @@ export default function SafariMap({ progress, onSelectGame, onHoverGame, level, 
         )}
       </motion.div>
     </section>
-  );
-}
-
-function LevelBar({ level, onChange }) {
-  const options = [{ id: 'all', label: 'All games', age: 'everyone' }, ...LEVELS];
-  return (
-    <div
-      role="tablist"
-      aria-label="Choose your level"
-      className="flex flex-wrap items-center justify-center gap-2"
-    >
-      {options.map((opt) => {
-        const active = opt.id === level;
-        return (
-          <button
-            key={opt.id}
-            role="tab"
-            aria-selected={active}
-            onClick={() => onChange(opt.id)}
-            className={[
-              'focus-ring rounded-full border-4 px-4 py-2 font-heading text-sm font-extrabold transition-colors sm:text-base',
-              active
-                ? 'border-terracotta-500 bg-terracotta-400 text-white shadow-soft'
-                : 'border-terracotta-200 bg-white/80 text-terracotta-600 hover:border-terracotta-300',
-            ].join(' ')}
-          >
-            <span className="block leading-none">{opt.label}</span>
-            <span
-              className={[
-                'mt-0.5 block text-[11px] font-bold leading-none',
-                active ? 'text-white/90' : 'text-terracotta-500/80',
-              ].join(' ')}
-            >
-              {opt.age}
-            </span>
-          </button>
-        );
-      })}
-    </div>
   );
 }
 

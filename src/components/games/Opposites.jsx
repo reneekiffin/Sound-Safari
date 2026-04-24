@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import AudioButton from '../shared/AudioButton.jsx';
 import Celebration from '../shared/Celebration.jsx';
-import AnimalHost from '../shared/AnimalHost.jsx';
+import PromptHeader from '../shared/PromptHeader.jsx';
 import GameShell from './GameShell.jsx';
 import { OPPOSITES_ROUNDS } from '../../data/opposites.js';
 import { pickSession, shuffleOptions } from '../../data/session.js';
@@ -88,26 +88,17 @@ export default function Opposites({ profile, totalStars, difficulty, recent, onE
       onOpenSettings={onOpenSettings}
     >
       <div className="flex flex-col items-center text-center">
-        <div className="relative flex h-44 w-full items-center justify-center">
-          <div className="absolute left-2 top-0 sm:left-6">
-            <AnimalHost type="toucan" size={140} happy={celebrateRound} />
-          </div>
-          <motion.div
-            key={round.id}
-            initial={{ rotate: -4, scale: 0.7, opacity: 0 }}
-            animate={{ rotate: 0, scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 240, damping: 18 }}
-            className="flex flex-col items-center rounded-[40px] bg-white/90 px-8 py-5 shadow-card"
-          >
-            <p className="font-body text-sm font-bold uppercase tracking-wide text-terracotta-500">
-              Toby says...
-            </p>
-            <span className="text-6xl" aria-hidden="true">{round.prompt.emoji}</span>
-            <p className="mt-1 font-display text-4xl text-terracotta-600 sm:text-5xl">
-              {round.prompt.word}
-            </p>
-          </motion.div>
-        </div>
+        <PromptHeader animal="toucan" happy={celebrateRound} hostLabel="Toby says...">
+          <span className="mt-1 block text-5xl sm:text-6xl" aria-hidden="true">
+            {round.prompt.emoji}
+          </span>
+          <p className="mt-1 font-display text-3xl text-terracotta-600 sm:text-4xl">
+            {round.prompt.word}
+          </p>
+          <p className="mt-1 font-body text-sm font-bold text-terracotta-500">
+            opposite?
+          </p>
+        </PromptHeader>
 
         <div className="mt-2 flex items-center gap-4">
           <AudioButton
