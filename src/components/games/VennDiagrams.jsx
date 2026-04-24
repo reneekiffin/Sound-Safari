@@ -9,6 +9,7 @@ import { pickSession } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
+import { pickCheer, pickWrongCheer, pickFinishCheer, CORRECT_CHEERS } from '../../data/cheers.js';
 
 // Venn Diagrams (Ollie the Owl).
 //
@@ -39,7 +40,7 @@ export default function VennDiagrams({ profile, totalStars, difficulty, recent, 
   const [done, setDone] = useState(false);
   const [celebrateRound, setCelebrateRound] = useState(false);
 
-  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
+  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud, speaker: 'owl' });
   const { play } = useAudio({ enabled: sfxEnabled });
 
   const diagram = diagrams[diagramIndex];
@@ -87,7 +88,7 @@ export default function VennDiagrams({ profile, totalStars, difficulty, recent, 
     } else {
       play('wrong');
       setWrongRegion(region);
-      speak('Hmm, think again!');
+      speak(pickWrongCheer());
       setTimeout(() => setWrongRegion(null), 500);
     }
   };
@@ -107,7 +108,7 @@ export default function VennDiagrams({ profile, totalStars, difficulty, recent, 
     setDone(true);
     play('celebrate');
     const final = score;
-    speak(`Wise work! ${final} out of ${totalItems}!`);
+    speak(`${pickFinishCheer()} ${final} out of ${totalItems}!`);
     const earnedStars = Math.ceil(final / 2) + (final === totalItems ? 1 : 0);
     onFinish({ earnedStars, score: final, total: totalItems, newRecent: nextRecent });
   };

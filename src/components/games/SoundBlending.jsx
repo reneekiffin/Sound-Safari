@@ -9,6 +9,7 @@ import { pickSession } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
+import { pickCheer, pickWrongCheer, pickFinishCheer, CORRECT_CHEERS } from '../../data/cheers.js';
 
 // Sound Blending (Momo the Monkey). See data/soundBlending.js for shape.
 
@@ -30,7 +31,7 @@ export default function SoundBlending({ profile, totalStars, difficulty, recent,
   const [done, setDone] = useState(false);
   const [animatedIndex, setAnimatedIndex] = useState(-1);
 
-  const { speak, speakPhonemeSequence } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
+  const { speak, speakPhonemeSequence } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud, speaker: 'monkey' });
   const { play } = useAudio({ enabled: sfxEnabled });
 
   const round = rounds[index];
@@ -65,7 +66,7 @@ export default function SoundBlending({ profile, totalStars, difficulty, recent,
     if (answered || done) return;
     if (opt.word === round.answer) {
       play('correct');
-      speak(`Yes! ${round.answer}!`);
+      speak(`${pickCheer(CORRECT_CHEERS)} ${round.answer}!`);
       setAnswered(true);
       setCelebrateRound(true);
       setScore((s) => s + 1);
@@ -80,7 +81,7 @@ export default function SoundBlending({ profile, totalStars, difficulty, recent,
     } else {
       play('wrong');
       setWrongWord(opt.word);
-      speak('Not quite. Listen again!');
+      speak(pickWrongCheer());
       setTimeout(() => {
         setWrongWord(null);
         playSequence({ includeBlend: false });
@@ -91,7 +92,7 @@ export default function SoundBlending({ profile, totalStars, difficulty, recent,
   const finish = (finalScore) => {
     setDone(true);
     play('celebrate');
-    speak(`Terrific! ${finalScore} out of ${rounds.length}!`);
+    speak(`${pickFinishCheer()} ${finalScore} out of ${rounds.length}!`);
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
     onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };

@@ -3,7 +3,7 @@ import Modal from '../shared/Modal.jsx';
 import Button from '../shared/Button.jsx';
 import ProgressBar from '../shared/ProgressBar.jsx';
 import { GAMES, LEVELS } from '../../data/games.js';
-import { OPENAI_VOICES } from '../../hooks/useCloudSpeech.js';
+import { OPENAI_VOICES, ELEVENLABS_VOICES } from '../../hooks/useCloudSpeech.js';
 
 const DIFFICULTIES = [
   { id: 'easy', label: 'Gentle' },
@@ -228,8 +228,29 @@ export default function ParentZone({
 //   - Cloud voice (much more natural, needs an API key, costs ~pennies)
 function VoiceSection({ state, voices, onUpdateSettings }) {
   const provider = state.settings.ttsProvider ?? 'browser';
-  const isCloud = provider === 'openai';
+  const isCloud = provider === 'openai' || provider === 'elevenlabs';
   const [showKey, setShowKey] = useState(false);
+
+  const providerInfo = {
+    openai: {
+      label: 'OpenAI',
+      keyField: 'ttsApiKey',
+      voices: OPENAI_VOICES,
+      defaultVoice: 'nova',
+      help: "OpenAI's gpt-4o-mini-tts.  Roughly $0.015 per 1k characters.",
+      keyHelp: 'Get a key at platform.openai.com/api-keys.',
+      placeholder: 'sk-...',
+    },
+    elevenlabs: {
+      label: 'ElevenLabs',
+      keyField: 'ttsElevenLabsKey',
+      voices: ELEVENLABS_VOICES,
+      defaultVoice: ELEVENLABS_VOICES[0].id,
+      help: "ElevenLabs eleven_flash_v2_5.  Each mascot gets its own voice automatically (Leo is deep + male, Polly is bright, Momo playful, Ellie warm + motherly, Finn spunky, etc.).  The picker below is the fallback when a mascot has no specific voice.",
+      keyHelp: 'Get a key at elevenlabs.io → profile → API Keys.',
+      placeholder: 'eleven_...',
+    },
+  };
 
   return (
     <div className="mt-4 rounded-2xl bg-white/70 p-3">
@@ -237,31 +258,28 @@ function VoiceSection({ state, voices, onUpdateSettings }) {
         Voice
       </p>
 
-      <div className="mt-2 flex gap-2">
-        <button
+      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <ProviderTab
+          label="Browser voice"
+          sub="free, varies by device"
+          active={provider === 'browser'}
           onClick={() => onUpdateSettings({ ttsProvider: 'browser' })}
-          className={[
-            'focus-ring flex-1 rounded-xl border-4 px-3 py-2 font-heading text-sm font-extrabold transition-colors',
-            provider === 'browser'
-              ? 'border-terracotta-500 bg-terracotta-400 text-white'
-              : 'border-terracotta-200 bg-white text-terracotta-600',
-          ].join(' ')}
-        >
-          Browser voice
-          <span className="block text-[11px] font-bold opacity-80">free, varies by device</span>
-        </button>
-        <button
+          tone="terracotta"
+        />
+        <ProviderTab
+          label="OpenAI"
+          sub="API key, very natural"
+          active={provider === 'openai'}
           onClick={() => onUpdateSettings({ ttsProvider: 'openai' })}
-          className={[
-            'focus-ring flex-1 rounded-xl border-4 px-3 py-2 font-heading text-sm font-extrabold transition-colors',
-            provider === 'openai'
-              ? 'border-jungle-400 bg-jungle-400 text-white'
-              : 'border-terracotta-200 bg-white text-terracotta-600',
-          ].join(' ')}
-        >
-          Natural voice (OpenAI)
-          <span className="block text-[11px] font-bold opacity-80">API key, very natural</span>
-        </button>
+          tone="jungle"
+        />
+        <ProviderTab
+          label="ElevenLabs ★"
+          sub="per-mascot voices"
+          active={provider === 'elevenlabs'}
+          onClick={() => onUpdateSettings({ ttsProvider: 'elevenlabs' })}
+          tone="parrot"
+        />
       </div>
 
       {provider === 'browser' && (
@@ -289,67 +307,90 @@ function VoiceSection({ state, voices, onUpdateSettings }) {
         </label>
       )}
 
-      {isCloud && (
-        <div className="mt-3 flex flex-col gap-3">
-          <label className="flex flex-col gap-1">
-            <span className="font-body text-sm font-bold text-terracotta-500">
-              OpenAI voice
-            </span>
-            <select
-              value={state.settings.ttsCloudVoice ?? 'nova'}
-              onChange={(e) =>
-                onUpdateSettings({ ttsCloudVoice: e.target.value })
-              }
-              className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-base font-extrabold text-terracotta-600"
-            >
-              {OPENAI_VOICES.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="flex flex-col gap-1">
-            <span className="font-body text-sm font-bold text-terracotta-500">
-              OpenAI API key
-            </span>
-            <div className="flex gap-2">
-              <input
-                type={showKey ? 'text' : 'password'}
-                value={state.settings.ttsApiKey ?? ''}
-                onChange={(e) => onUpdateSettings({ ttsApiKey: e.target.value })}
-                placeholder="sk-..."
-                className="focus-ring flex-1 rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-body text-base text-terracotta-600"
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <button
-                type="button"
-                onClick={() => setShowKey((s) => !s)}
-                className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-sm font-extrabold text-terracotta-600"
+      {isCloud && (() => {
+        const info = providerInfo[provider];
+        const keyValue = state.settings[info.keyField] ?? '';
+        return (
+          <div className="mt-3 flex flex-col gap-3">
+            <label className="flex flex-col gap-1">
+              <span className="font-body text-sm font-bold text-terracotta-500">
+                {info.label} fallback voice
+              </span>
+              <select
+                value={state.settings.ttsCloudVoice ?? info.defaultVoice}
+                onChange={(e) =>
+                  onUpdateSettings({ ttsCloudVoice: e.target.value })
+                }
+                className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-base font-extrabold text-terracotta-600"
               >
-                {showKey ? 'Hide' : 'Show'}
-              </button>
+                {info.voices.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-1">
+              <span className="font-body text-sm font-bold text-terracotta-500">
+                {info.label} API key
+              </span>
+              <div className="flex gap-2">
+                <input
+                  type={showKey ? 'text' : 'password'}
+                  value={keyValue}
+                  onChange={(e) => onUpdateSettings({ [info.keyField]: e.target.value })}
+                  placeholder={info.placeholder}
+                  className="focus-ring flex-1 rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-body text-base text-terracotta-600"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowKey((s) => !s)}
+                  className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-sm font-extrabold text-terracotta-600"
+                >
+                  {showKey ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            </label>
+
+            <div className="rounded-xl bg-jungle-400/10 p-3 font-body text-xs text-terracotta-600/90">
+              <strong className="font-extrabold text-jungle-500">How this works.</strong>{' '}
+              {info.help}  Audio is cached on this device, so repeated phrases cost
+              nothing after the first time.  The key is stored only in this
+              browser's localStorage.
             </div>
-          </label>
 
-          <div className="rounded-xl bg-jungle-400/10 p-3 font-body text-xs text-terracotta-600/90">
-            <strong className="font-extrabold text-jungle-500">How this works.</strong>{' '}
-            Speech is sent to OpenAI's TTS API (<span className="font-mono">gpt-4o-mini-tts</span>)
-            and the audio is cached on this device, so repeated phrases cost nothing
-            after the first time. The key is stored only in this browser's
-            localStorage. Roughly <span className="font-mono">$0.015</span> per 1k
-            characters; a 10-round session typically costs a fraction of a cent.
+            <p className="font-body text-xs text-terracotta-500/80">
+              Don't have a key? {info.keyHelp}
+            </p>
           </div>
-
-          <p className="font-body text-xs text-terracotta-500/80">
-            Don't have a key? Get one at{' '}
-            <span className="font-mono">platform.openai.com/api-keys</span>.
-          </p>
-        </div>
-      )}
+        );
+      })()}
     </div>
+  );
+}
+
+// Visual tab used by the provider picker at the top of VoiceSection.
+// Kept local to this component; centralising would be overkill.
+function ProviderTab({ label, sub, active, onClick, tone = 'terracotta' }) {
+  const activeBg = {
+    terracotta: 'border-terracotta-500 bg-terracotta-400 text-white',
+    jungle: 'border-jungle-400 bg-jungle-400 text-white',
+    parrot: 'border-parrot-400 bg-parrot-400 text-white',
+  }[tone];
+  return (
+    <button
+      onClick={onClick}
+      className={[
+        'focus-ring rounded-xl border-4 px-3 py-2 text-left font-heading text-sm font-extrabold transition-colors',
+        active ? activeBg : 'border-terracotta-200 bg-white text-terracotta-600',
+      ].join(' ')}
+    >
+      {label}
+      <span className="block text-[11px] font-bold opacity-80">{sub}</span>
+    </button>
   );
 }
 

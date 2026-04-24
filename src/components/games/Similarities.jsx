@@ -4,11 +4,12 @@ import AudioButton from '../shared/AudioButton.jsx';
 import Celebration from '../shared/Celebration.jsx';
 import PromptHeader from '../shared/PromptHeader.jsx';
 import GameShell from './GameShell.jsx';
-import { SIMILARITIES_ROUNDS } from '../../data/similarities.js';
+import { SIMILARITIES_ROUNDS, filterSimilaritiesByMode } from '../../data/similarities.js';
 import { pickSession, shuffleOptions } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
+import { pickCheer, pickWrongCheer, pickFinishCheer, CORRECT_CHEERS } from '../../data/cheers.js';
 
 // Similarities (Finn the Frog).  Two round shapes — "synonym" (pick the
 // closest-meaning word) and "category" (find the one that belongs with
@@ -19,11 +20,24 @@ const ROUNDS_PER_SESSION = 10;
 export default function Similarities({ profile, totalStars, difficulty, recent, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled, voiceURI, cloud }) {
   const game = getGame('similarities');
 
+  // Mode toggle: 'mixed' (default) | 'synonym' | 'category'.  Lets kids
+  // drill synonyms specifically — per user request — without dropping
+  // the category shape for those who want both.
+  const [mode, setMode] = useState('mixed');
+  const [modeKey, setModeKey] = useState(0);
+
   const { rounds, nextRecent } = useMemo(() => {
-    const pool = SIMILARITIES_ROUNDS[difficulty] ?? SIMILARITIES_ROUNDS.easy;
-    const { rounds: picked, nextRecent: updated } = pickSession({ pool, recent, size: ROUNDS_PER_SESSION, getId: (r) => r.id });
+    const tier = SIMILARITIES_ROUNDS[difficulty] ?? SIMILARITIES_ROUNDS.easy;
+    const pool = filterSimilaritiesByMode(tier, mode);
+    const { rounds: picked, nextRecent: updated } = pickSession({
+      pool,
+      recent,
+      size: ROUNDS_PER_SESSION,
+      getId: (r) => r.id,
+      balanceBy: 'category',
+    });
     return { rounds: picked.map(shuffleOptions), nextRecent: updated };
-  }, [difficulty, recent]);
+  }, [difficulty, recent, mode, modeKey]);
 
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -32,7 +46,7 @@ export default function Similarities({ profile, totalStars, difficulty, recent, 
   const [celebrateRound, setCelebrateRound] = useState(false);
   const [done, setDone] = useState(false);
 
-  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
+  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud, speaker: 'frog' });
   const { play } = useAudio({ enabled: sfxEnabled });
   const round = rounds[index];
 
@@ -53,7 +67,7 @@ export default function Similarities({ profile, totalStars, difficulty, recent, 
     if (answered || done) return;
     if (opt.word === round.answer) {
       play('correct');
-      speak('Yes, that matches!');
+      speak(pickCheer(CORRECT_CHEERS));
       setAnswered(true);
       setCelebrateRound(true);
       setScore((s) => s + 1);
@@ -65,7 +79,7 @@ export default function Similarities({ profile, totalStars, difficulty, recent, 
     } else {
       play('wrong');
       setWrongWord(opt.word);
-      speak('Not quite. Try another!');
+      speak(pickWrongCheer());
       setTimeout(() => setWrongWord(null), 600);
     }
   };
@@ -73,7 +87,7 @@ export default function Similarities({ profile, totalStars, difficulty, recent, 
   const finish = (finalScore) => {
     setDone(true);
     play('celebrate');
-    speak(`Super! ${finalScore} out of ${rounds.length}!`);
+    speak(`${pickFinishCheer()} ${finalScore} out of ${rounds.length}!`);
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
     onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };
@@ -92,6 +106,16 @@ export default function Similarities({ profile, totalStars, difficulty, recent, 
       onOpenSettings={onOpenSettings}
     >
       <div className="flex flex-col items-center text-center">
+        <ModeToggle
+          value={mode}
+          onChange={(m) => {
+            setMode(m);
+            setIndex(0);
+            setScore(0);
+            setModeKey((k) => k + 1);
+          }}
+        />
+
         <PromptHeader animal="frog" happy={celebrateRound} hostLabel="Finn says...">
           {round.type === 'synonym' ? (
             <>
@@ -194,5 +218,36 @@ function PictureCard({ option, state, onTap, onPreview }) {
         {option.word}
       </span>
     </motion.button>
+  );
+}
+
+// In-game mode toggle: Mixed / Synonyms / Categories.
+// Lets kids drill a single shape without leaving the game.
+function ModeToggle({ value, onChange }) {
+  const opts = [
+    { id: 'mixed', label: 'Mixed' },
+    { id: 'synonym', label: 'Synonyms' },
+    { id: 'category', label: 'Categories' },
+  ];
+  return (
+    <div className="mb-3 flex w-full flex-wrap items-center justify-center gap-2">
+      {opts.map((opt) => {
+        const active = opt.id === value;
+        return (
+          <button
+            key={opt.id}
+            onClick={() => onChange(opt.id)}
+            className={[
+              'focus-ring rounded-full border-4 px-4 py-1.5 font-heading text-sm font-extrabold transition-colors',
+              active
+                ? 'border-jungle-500 bg-jungle-400 text-white'
+                : 'border-terracotta-200 bg-white text-terracotta-600 hover:border-terracotta-300',
+            ].join(' ')}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }

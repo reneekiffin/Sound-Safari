@@ -4,11 +4,18 @@ import AudioButton from '../shared/AudioButton.jsx';
 import Celebration from '../shared/Celebration.jsx';
 import PromptHeader from '../shared/PromptHeader.jsx';
 import GameShell from './GameShell.jsx';
-import { LETTER_SOUNDS_ROUNDS, SAMPLE_WORDS } from '../../data/letterSounds.js';
+import { LETTER_SOUNDS_ROUNDS, SAMPLE_WORDS, getLetterExamples } from '../../data/letterSounds.js';
 import { pickSession, shuffleOptions } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
+import {
+  pickCheer,
+  pickWrongCheer,
+  pickFinishCheer,
+  pickNextPrompt,
+  CORRECT_CHEERS,
+} from '../../data/cheers.js';
 
 // Letter Sounds (Leo the Lion).  See data/letterSounds.js for round shape.
 
@@ -32,10 +39,11 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState(false);
   const [celebrateRound, setCelebrateRound] = useState(false);
+  const [celebrationPhrase, setCelebrationPhrase] = useState('Nice one!');
   const [wrongLetter, setWrongLetter] = useState(null);
   const [done, setDone] = useState(false);
 
-  const { speak, speakLetterSound } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
+  const { speak, speakLetterSound } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud, speaker: 'lion' });
   const { play } = useAudio({ enabled: sfxEnabled });
 
   const currentRound = rounds[index];
@@ -60,7 +68,10 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
     if (answered || done) return;
     if (letter === currentRound.letter) {
       play('correct');
-      speak('Yes, great job!');
+      const cheer = pickCheer(CORRECT_CHEERS);
+      setCelebrationPhrase(cheer);
+      // Speak the cheer, then the next-round nudge if more rounds remain.
+      speak(`${cheer} ${index + 1 < rounds.length ? pickNextPrompt() : ''}`);
       setAnswered(true);
       setCelebrateRound(true);
       setScore((s) => s + 1);
@@ -71,11 +82,11 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
         } else {
           setIndex((i) => i + 1);
         }
-      }, 900);
+      }, 1000);
     } else {
       play('wrong');
       setWrongLetter(letter);
-      speak('Oops, try again!');
+      speak(pickWrongCheer());
       setTimeout(() => setWrongLetter(null), 500);
     }
   };
@@ -83,7 +94,7 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
   const finish = (finalScore) => {
     setDone(true);
     play('celebrate');
-    speak(`Amazing! You got ${finalScore} out of ${rounds.length}!`);
+    speak(`${pickFinishCheer()} You got ${finalScore} out of ${rounds.length}!`);
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
     onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };
@@ -114,13 +125,24 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
         <div className="mt-2 flex items-center gap-4">
           <AudioButton onPress={replaySound} label="Play the sound again" />
           <p className="max-w-xs text-left font-body text-base text-terracotta-600/90 sm:text-lg">
-            Tap the speaker to hear it again. Then tap the matching letter!
+            Tap a word to practise the sound — then tap the matching letter!
           </p>
         </div>
 
+        {/* Example-word chips — kid taps each to hear the word.  Lets
+            pre-readers practise the sound in context before picking a
+            letter.  Emoji + word keeps it accessible for non-readers. */}
+        <ExampleWords
+          letter={currentRound.letter}
+          onPreview={(word) => {
+            play('tap');
+            speak(word, { rate: 0.85 });
+          }}
+        />
+
         <div
           className={[
-            'mt-6 grid w-full gap-4',
+            'mt-5 grid w-full gap-4',
             currentRound.options.length > 3 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3',
           ].join(' ')}
         >
@@ -152,10 +174,43 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
       <Celebration
         show={celebrateRound}
         emoji="🦁"
-        title="Nice one!"
+        title={celebrationPhrase}
         subtitle="You heard it just right."
       />
     </GameShell>
+  );
+}
+
+// Three example-word chips that practise the current letter sound.  Tap
+// (or hover) any chip and we say the word — encourages kids to sound it
+// out themselves first, then compare.  Bounces when tapped for feedback.
+function ExampleWords({ letter, onPreview }) {
+  const examples = getLetterExamples(letter);
+  if (!examples.length) return null;
+  return (
+    <div className="mt-5 w-full">
+      <p className="mb-2 font-body text-sm font-bold uppercase tracking-widest text-terracotta-500">
+        Tap a word to sound it out
+      </p>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        {examples.map((ex) => (
+          <motion.button
+            key={ex.word}
+            onClick={() => onPreview(ex.word)}
+            onHoverStart={() => onPreview(ex.word)}
+            onFocus={() => onPreview(ex.word)}
+            aria-label={`Hear the word ${ex.word}`}
+            whileTap={{ scale: 0.92 }}
+            whileHover={{ y: -4, rotate: -2 }}
+            transition={{ type: 'spring', stiffness: 360, damping: 16 }}
+            className="focus-ring flex items-center gap-2 rounded-3xl border-4 border-terracotta-200 bg-white px-4 py-3 font-letter text-lg font-bold text-terracotta-600 shadow-card hover:border-terracotta-300"
+          >
+            <span className="text-3xl" aria-hidden="true">{ex.emoji}</span>
+            <span>{ex.word}</span>
+          </motion.button>
+        ))}
+      </div>
+    </div>
   );
 }
 

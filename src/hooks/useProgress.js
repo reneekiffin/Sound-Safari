@@ -21,9 +21,10 @@ const DEFAULT_STATE = {
     difficulty: 'easy', // 'easy' | 'medium' | 'hard'
     level: 'growing', // 'little' | 'growing' | 'brave' | 'big' | 'all'
     voiceURI: null, // parent-picked Web Speech voice, null = auto
-    ttsProvider: 'browser', // 'browser' | 'openai'
-    ttsApiKey: '', // stored only in localStorage on this device
-    ttsCloudVoice: 'nova', // voice id for the chosen cloud provider
+    ttsProvider: 'browser', // 'browser' | 'openai' | 'elevenlabs'
+    ttsApiKey: '', // OpenAI key — stored only in localStorage on this device
+    ttsElevenLabsKey: '', // ElevenLabs key — separate so switching providers doesn't lose it
+    ttsCloudVoice: 'nova', // fallback voice id (per-mascot routing happens in useCloudSpeech)
   },
   games: Object.fromEntries(GAMES.map((g) => [g.id, defaultGameRecord()])),
 };

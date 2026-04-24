@@ -9,6 +9,7 @@ import { pickSession, shuffleOptions } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
+import { pickCheer, pickWrongCheer, pickFinishCheer, CORRECT_CHEERS } from '../../data/cheers.js';
 
 // Opposites (Toby the Toucan).  Simple "pick the word that means the
 // other thing" flow, sharing the picture-card layout used elsewhere.
@@ -31,7 +32,7 @@ export default function Opposites({ profile, totalStars, difficulty, recent, onE
   const [celebrateRound, setCelebrateRound] = useState(false);
   const [done, setDone] = useState(false);
 
-  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
+  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud, speaker: 'toucan' });
   const { play } = useAudio({ enabled: sfxEnabled });
   const round = rounds[index];
 
@@ -49,7 +50,7 @@ export default function Opposites({ profile, totalStars, difficulty, recent, onE
     if (answered || done) return;
     if (opt.word === round.answer) {
       play('correct');
-      speak(`Yes! The opposite of ${round.prompt.word} is ${opt.word}.`);
+      speak(`${pickCheer(CORRECT_CHEERS)} The opposite of ${round.prompt.word} is ${opt.word}!`);
       setAnswered(true);
       setCelebrateRound(true);
       setScore((s) => s + 1);
@@ -61,7 +62,7 @@ export default function Opposites({ profile, totalStars, difficulty, recent, onE
     } else {
       play('wrong');
       setWrongWord(opt.word);
-      speak(`${opt.word} isn't the opposite. Try again!`);
+      speak(pickWrongCheer());
       setTimeout(() => setWrongWord(null), 600);
     }
   };
@@ -69,7 +70,7 @@ export default function Opposites({ profile, totalStars, difficulty, recent, onE
   const finish = (finalScore) => {
     setDone(true);
     play('celebrate');
-    speak(`Brilliant! ${finalScore} out of ${rounds.length}!`);
+    speak(`${pickFinishCheer()} ${finalScore} out of ${rounds.length}!`);
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
     onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };

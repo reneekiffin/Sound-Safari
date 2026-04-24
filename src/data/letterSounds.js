@@ -79,5 +79,206 @@ export const SAMPLE_WORDS = Object.fromEntries(
   [...EASY, ...MEDIUM, ...HARD].map((r) => [r.letter, r.sampleWord]),
 );
 
+// Example-word chips shown beneath the phoneme so kids can tap each one
+// to hear the word pronounced — reinforces the sound-in-context.  Each
+// letter gets 3 kid-friendly examples with an emoji so pre-readers can
+// recognise the word visually.
+export const LETTER_EXAMPLES = {
+  a: [
+    { word: 'apple', emoji: '🍎' },
+    { word: 'ant', emoji: '🐜' },
+    { word: 'alligator', emoji: '🐊' },
+  ],
+  b: [
+    { word: 'bear', emoji: '🐻' },
+    { word: 'banana', emoji: '🍌' },
+    { word: 'ball', emoji: '⚽' },
+  ],
+  c: [
+    { word: 'cat', emoji: '🐈' },
+    { word: 'cake', emoji: '🎂' },
+    { word: 'cow', emoji: '🐄' },
+  ],
+  d: [
+    { word: 'dog', emoji: '🐕' },
+    { word: 'duck', emoji: '🦆' },
+    { word: 'drum', emoji: '🥁' },
+  ],
+  e: [
+    { word: 'egg', emoji: '🥚' },
+    { word: 'elephant', emoji: '🐘' },
+    { word: 'elbow', emoji: '💪' },
+  ],
+  f: [
+    { word: 'fish', emoji: '🐟' },
+    { word: 'frog', emoji: '🐸' },
+    { word: 'fire', emoji: '🔥' },
+  ],
+  g: [
+    { word: 'goat', emoji: '🐐' },
+    { word: 'grape', emoji: '🍇' },
+    { word: 'guitar', emoji: '🎸' },
+  ],
+  h: [
+    { word: 'hat', emoji: '🎩' },
+    { word: 'house', emoji: '🏠' },
+    { word: 'hippo', emoji: '🦛' },
+  ],
+  i: [
+    { word: 'igloo', emoji: '🏔️' },
+    { word: 'insect', emoji: '🐞' },
+    { word: 'ink', emoji: '🖊️' },
+  ],
+  j: [
+    { word: 'jungle', emoji: '🌴' },
+    { word: 'jam', emoji: '🫐' },
+    { word: 'jump', emoji: '🤸' },
+  ],
+  k: [
+    { word: 'kite', emoji: '🪁' },
+    { word: 'king', emoji: '🤴' },
+    { word: 'key', emoji: '🔑' },
+  ],
+  l: [
+    { word: 'lion', emoji: '🦁' },
+    { word: 'leaf', emoji: '🍃' },
+    { word: 'lamp', emoji: '💡' },
+  ],
+  m: [
+    { word: 'monkey', emoji: '🐒' },
+    { word: 'moon', emoji: '🌙' },
+    { word: 'milk', emoji: '🥛' },
+  ],
+  n: [
+    { word: 'nest', emoji: '🪺' },
+    { word: 'nut', emoji: '🥜' },
+    { word: 'nose', emoji: '👃' },
+  ],
+  o: [
+    { word: 'octopus', emoji: '🐙' },
+    { word: 'orange', emoji: '🍊' },
+    { word: 'ox', emoji: '🐂' },
+  ],
+  p: [
+    { word: 'panda', emoji: '🐼' },
+    { word: 'pizza', emoji: '🍕' },
+    { word: 'pig', emoji: '🐷' },
+  ],
+  q: [
+    { word: 'queen', emoji: '👸' },
+    { word: 'quack', emoji: '🦆' },
+    { word: 'quilt', emoji: '🛏️' },
+  ],
+  r: [
+    { word: 'rabbit', emoji: '🐇' },
+    { word: 'rainbow', emoji: '🌈' },
+    { word: 'robot', emoji: '🤖' },
+  ],
+  s: [
+    { word: 'snake', emoji: '🐍' },
+    { word: 'sun', emoji: '☀️' },
+    { word: 'sock', emoji: '🧦' },
+  ],
+  t: [
+    { word: 'tiger', emoji: '🐅' },
+    { word: 'tree', emoji: '🌳' },
+    { word: 'turtle', emoji: '🐢' },
+  ],
+  u: [
+    { word: 'umbrella', emoji: '☂️' },
+    { word: 'up', emoji: '⬆️' },
+    { word: 'uncle', emoji: '👨' },
+  ],
+  v: [
+    { word: 'violin', emoji: '🎻' },
+    { word: 'vegetable', emoji: '🥕' },
+    { word: 'volcano', emoji: '🌋' },
+  ],
+  w: [
+    { word: 'water', emoji: '💧' },
+    { word: 'whale', emoji: '🐋' },
+    { word: 'worm', emoji: '🪱' },
+  ],
+  x: [
+    { word: 'box', emoji: '📦' },
+    { word: 'fox', emoji: '🦊' },
+    { word: 'six', emoji: '6️⃣' },
+  ],
+  y: [
+    { word: 'yellow', emoji: '🟡' },
+    { word: 'yak', emoji: '🐃' },
+    { word: 'yo-yo', emoji: '🪀' },
+  ],
+  z: [
+    { word: 'zebra', emoji: '🦓' },
+    { word: 'zoo', emoji: '🦒' },
+    { word: 'zipper', emoji: '🧥' },
+  ],
+  sh: [
+    { word: 'shoe', emoji: '👟' },
+    { word: 'sheep', emoji: '🐑' },
+    { word: 'ship', emoji: '🚢' },
+  ],
+  ch: [
+    { word: 'cheese', emoji: '🧀' },
+    { word: 'chair', emoji: '🪑' },
+    { word: 'cherry', emoji: '🍒' },
+  ],
+  th: [
+    { word: 'three', emoji: '3️⃣' },
+    { word: 'thumb', emoji: '👍' },
+    { word: 'thin', emoji: '🪵' },
+  ],
+  ng: [
+    { word: 'ring', emoji: '💍' },
+    { word: 'king', emoji: '🤴' },
+    { word: 'sing', emoji: '🎤' },
+  ],
+  qu: [
+    { word: 'queen', emoji: '👸' },
+    { word: 'quilt', emoji: '🛏️' },
+    { word: 'quiet', emoji: '🤫' },
+  ],
+  ai: [
+    { word: 'rain', emoji: '🌧️' },
+    { word: 'train', emoji: '🚂' },
+    { word: 'snail', emoji: '🐌' },
+  ],
+  ee: [
+    { word: 'tree', emoji: '🌳' },
+    { word: 'bee', emoji: '🐝' },
+    { word: 'sheep', emoji: '🐑' },
+  ],
+  oo: [
+    { word: 'moon', emoji: '🌙' },
+    { word: 'spoon', emoji: '🥄' },
+    { word: 'boot', emoji: '🥾' },
+  ],
+  oa: [
+    { word: 'boat', emoji: '⛵' },
+    { word: 'goat', emoji: '🐐' },
+    { word: 'toast', emoji: '🍞' },
+  ],
+  ou: [
+    { word: 'cloud', emoji: '☁️' },
+    { word: 'house', emoji: '🏠' },
+    { word: 'mouse', emoji: '🐭' },
+  ],
+  ar: [
+    { word: 'star', emoji: '⭐' },
+    { word: 'car', emoji: '🚗' },
+    { word: 'shark', emoji: '🦈' },
+  ],
+  or: [
+    { word: 'fork', emoji: '🍴' },
+    { word: 'horn', emoji: '🎺' },
+    { word: 'corn', emoji: '🌽' },
+  ],
+};
+
+export function getLetterExamples(letter) {
+  return LETTER_EXAMPLES[letter] ?? [];
+}
+
 // The picker is driven by shared utilities in data/session.js (which
 // remembers recently-seen rounds per game, so each session feels fresh).
