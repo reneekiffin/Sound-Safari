@@ -40,6 +40,10 @@ const VOICE_WHITELIST = [
   'b8gbDO0ybjX1VA89pBdX', // Zara   (zebra)
   '9yzdeviXkFddZ4Oz8Mok', // Gigi   (giraffe)
   'EaX6rnyDKjJx35tchi80', // Finn   (frog)
+  'XJ2fW4ybq7HouelYYGcL', // Skippy (squirrel)
+  'vGQNBgLaiM3EdZtxIiuY', // Toby   (toucan)
+  'y3UNfL9XC5Bb5htg8B0q', // Ollie  (owl)
+  'pPdl9cQBQq4p6mRkZy2Z', // Penny  (panda)
 ];
 
 const ELEVENLABS_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
