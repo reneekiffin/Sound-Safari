@@ -66,6 +66,17 @@ export const CHARACTER_VOICES = {
       use_speaker_boost: true,
     },
   },
+  frog: {
+    name: 'Finn',
+    description: 'Same-Same host — spunky, lively',
+    voiceId: 'gA870ILGhb2a1FhxtmLH',
+    settings: {
+      stability: 0.45,
+      similarity_boost: 0.78,
+      style: 0.4,
+      use_speaker_boost: true,
+    },
+  },
   giraffe: {
     name: 'Gigi',
     description: 'Sentence Safari host — gentle teacher voice',
