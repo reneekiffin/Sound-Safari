@@ -1,32 +1,32 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import AudioButton from '../shared/AudioButton.jsx';
-import Button from '../shared/Button.jsx';
 import Celebration from '../shared/Celebration.jsx';
 import AnimalHost from '../shared/AnimalHost.jsx';
 import GameShell from './GameShell.jsx';
-import { pickLetterSoundsSession, PHONEME_SCRIPTS } from '../../data/letterSounds.js';
+import { LETTER_SOUNDS_ROUNDS, SAMPLE_WORDS } from '../../data/letterSounds.js';
+import { pickSession, shuffleOptions } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
 
-// Letter Sounds game (Leo the Lion).
-//
-// Round flow:
-//   1. Lion speaks an instruction ("Tap the letter that makes the _ sound")
-//   2. Kid can replay the sound any time via the big speaker button
-//   3. Kid taps one of 3-4 letter cards
-//   4. Correct -> lion cheers + card bounces + short confetti, then advance
-//      Wrong -> card shakes, gentle "try again", cards stay tappable (no
-//      time pressure).
+// Letter Sounds (Leo the Lion).  See data/letterSounds.js for round shape.
+
 const ROUNDS_PER_SESSION = 10;
 
-export default function LetterSounds({ profile, totalStars, difficulty, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled }) {
+export default function LetterSounds({ profile, totalStars, difficulty, recent, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled, voiceURI }) {
   const game = getGame('letter-sounds');
-  const rounds = useMemo(
-    () => pickLetterSoundsSession(difficulty, ROUNDS_PER_SESSION),
-    [difficulty],
-  );
+
+  const { rounds, nextRecent } = useMemo(() => {
+    const pool = LETTER_SOUNDS_ROUNDS[difficulty] ?? LETTER_SOUNDS_ROUNDS.easy;
+    const { rounds: picked, nextRecent: updated } = pickSession({
+      pool,
+      recent,
+      size: ROUNDS_PER_SESSION,
+      getId: (r) => r.letter,
+    });
+    return { rounds: picked.map(shuffleOptions), nextRecent: updated };
+  }, [difficulty, recent]);
 
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -35,37 +35,32 @@ export default function LetterSounds({ profile, totalStars, difficulty, onExit, 
   const [wrongLetter, setWrongLetter] = useState(null);
   const [done, setDone] = useState(false);
 
-  const { speak } = useSpeech({ enabled: audioEnabled });
+  const { speak, speakLetterSound } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI });
   const { play } = useAudio({ enabled: sfxEnabled });
 
   const currentRound = rounds[index];
-  const hasAutoSpoken = useRef(false);
 
-  // Whenever the round changes, auto-play the sound after a short beat so
-  // kids have something to respond to without needing to read instructions.
   useEffect(() => {
     if (!currentRound || done) return undefined;
-    hasAutoSpoken.current = false;
     setAnswered(false);
     setWrongLetter(null);
     const t = setTimeout(() => {
-      speak(`Tap the letter that says ${currentRound.sound}`);
-      hasAutoSpoken.current = true;
+      speakLetterSound(currentRound);
     }, 400);
     return () => clearTimeout(t);
-  }, [currentRound, speak, done]);
+  }, [currentRound, speakLetterSound, done]);
 
   const replaySound = () => {
     if (!currentRound) return;
     play('tap');
-    speak(currentRound.sound, { rate: 0.7 });
+    speakLetterSound(currentRound, { rate: 0.7 });
   };
 
   const handlePick = (letter) => {
     if (answered || done) return;
-    if (letter === currentRound.correctLetter) {
+    if (letter === currentRound.letter) {
       play('correct');
-      speak('Yes! Great job!');
+      speak('Yes, great job!');
       setAnswered(true);
       setCelebrateRound(true);
       setScore((s) => s + 1);
@@ -80,7 +75,7 @@ export default function LetterSounds({ profile, totalStars, difficulty, onExit, 
     } else {
       play('wrong');
       setWrongLetter(letter);
-      speak(`Oops, try again!`);
+      speak('Oops, try again!');
       setTimeout(() => setWrongLetter(null), 500);
     }
   };
@@ -89,12 +84,12 @@ export default function LetterSounds({ profile, totalStars, difficulty, onExit, 
     setDone(true);
     play('celebrate');
     speak(`Amazing! You got ${finalScore} out of ${rounds.length}!`);
-    // Stars: one per correct answer, plus a bonus star for perfect scores.
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
-    onFinish({ earnedStars, score: finalScore, total: rounds.length });
+    onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };
 
   if (done) return null;
+  if (!currentRound) return null;
 
   return (
     <GameShell
@@ -112,7 +107,7 @@ export default function LetterSounds({ profile, totalStars, difficulty, onExit, 
             <AnimalHost type="lion" size={140} happy={celebrateRound} />
           </motion.div>
           <motion.div
-            key={currentRound.sound}
+            key={currentRound.letter}
             initial={{ scale: 0.6, y: 10, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 250, damping: 16 }}
@@ -122,13 +117,16 @@ export default function LetterSounds({ profile, totalStars, difficulty, onExit, 
               Leo says...
             </p>
             <p className="font-display text-4xl text-terracotta-600 sm:text-5xl">
-              “{currentRound.sound}”
+              “{currentRound.phoneme}”
+            </p>
+            <p className="mt-1 font-body text-sm text-terracotta-600/80">
+              like {currentRound.sampleWord}
             </p>
           </motion.div>
         </div>
 
         <div className="mt-2 flex items-center gap-4">
-          <AudioButton onPress={replaySound} label={`Play the sound ${currentRound.sound} again`} />
+          <AudioButton onPress={replaySound} label="Play the sound again" />
           <p className="max-w-xs text-left font-body text-base text-terracotta-600/90 sm:text-lg">
             Tap the speaker to hear it again. Then tap the matching letter!
           </p>
@@ -146,7 +144,7 @@ export default function LetterSounds({ profile, totalStars, difficulty, onExit, 
                 key={letter}
                 letter={letter}
                 state={
-                  answered && letter === currentRound.correctLetter
+                  answered && letter === currentRound.letter
                     ? 'correct'
                     : wrongLetter === letter
                     ? 'wrong'
@@ -154,7 +152,10 @@ export default function LetterSounds({ profile, totalStars, difficulty, onExit, 
                 }
                 onTap={() => handlePick(letter)}
                 onPreview={() =>
-                  speak(PHONEME_SCRIPTS[letter] ?? letter, { rate: 0.7 })
+                  speakLetterSound(
+                    { letter, phoneme: currentRound.letter === letter ? currentRound.phoneme : letter, sampleWord: SAMPLE_WORDS[letter] },
+                    { rate: 0.75 },
+                  )
                 }
               />
             ))}

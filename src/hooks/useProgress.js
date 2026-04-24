@@ -1,24 +1,28 @@
 import { useCallback, useEffect, useState } from 'react';
+import { GAMES } from '../data/games.js';
 
 const STORAGE_KEY = 'sound-safari:v1';
 
-// The single, serialisable source of truth for the app's user state.
-// Kept flat on purpose so it's easy to migrate later.
+// Default per-game record — stars, sessions completed, best single-session
+// score, and a rolling "recently seen round IDs" window used by the
+// session picker so every replay serves fresh content.
+function defaultGameRecord() {
+  return { stars: 0, completed: 0, bestScore: 0, recent: [] };
+}
+
 const DEFAULT_STATE = {
   childName: 'Explorer',
   avatar: '🦁',
   stars: 0,
-  lastCelebratedStarMilestone: 0, // track when we last fired a "every 5 stars" celebration
+  lastCelebratedStarMilestone: 0,
   settings: {
     audioEnabled: true,
     sfxEnabled: true,
     difficulty: 'easy', // 'easy' | 'medium' | 'hard'
+    level: 'growing', // 'little' | 'growing' | 'brave' | 'big' | 'all'
+    voiceURI: null, // parent-picked TTS voice, null = auto
   },
-  games: {
-    'letter-sounds': { stars: 0, completed: 0, bestScore: 0 },
-    'sound-blending': { stars: 0, completed: 0, bestScore: 0 },
-    'rhyme-time': { stars: 0, completed: 0, bestScore: 0 },
-  },
+  games: Object.fromEntries(GAMES.map((g) => [g.id, defaultGameRecord()])),
 };
 
 function loadState() {
@@ -27,17 +31,26 @@ function loadState() {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_STATE;
     const parsed = JSON.parse(raw);
-    // Shallow-merge in case newer versions added fields.
     return {
       ...DEFAULT_STATE,
       ...parsed,
       settings: { ...DEFAULT_STATE.settings, ...(parsed.settings ?? {}) },
-      games: { ...DEFAULT_STATE.games, ...(parsed.games ?? {}) },
+      games: mergeGames(parsed.games ?? {}),
     };
   } catch (err) {
     console.warn('Failed to read progress state', err);
     return DEFAULT_STATE;
   }
+}
+
+// Ensure every known game has a record — important because new games added
+// in later versions shouldn't crash old saved state.
+function mergeGames(saved) {
+  const merged = {};
+  for (const g of GAMES) {
+    merged[g.id] = { ...defaultGameRecord(), ...(saved[g.id] ?? {}) };
+  }
+  return merged;
 }
 
 function saveState(state) {
@@ -56,17 +69,15 @@ export function useProgress() {
     saveState(state);
   }, [state]);
 
-  // Record a finished game session.  `earnedStars` is usually 1 per round
-  // they got correct, capped at a sensible ceiling per game.  Total stars
-  // accumulate across all games for the global celebration counter.
   const recordGameSession = useCallback(
-    (gameId, { earnedStars, score }) => {
+    (gameId, { earnedStars, score, newRecent }) => {
       setState((prev) => {
-        const game = prev.games[gameId] ?? { stars: 0, completed: 0, bestScore: 0 };
+        const game = prev.games[gameId] ?? defaultGameRecord();
         const nextGame = {
           stars: game.stars + earnedStars,
           completed: game.completed + 1,
           bestScore: Math.max(game.bestScore ?? 0, score ?? 0),
+          recent: Array.isArray(newRecent) ? newRecent : game.recent ?? [],
         };
         return {
           ...prev,
@@ -100,6 +111,13 @@ export function useProgress() {
     }
   }, []);
 
+  // Direct access to a game's "recently seen" list — used by session
+  // pickers so they skip content the kid just saw.
+  const getRecentFor = useCallback(
+    (gameId) => state.games[gameId]?.recent ?? [],
+    [state.games],
+  );
+
   return {
     state,
     recordGameSession,
@@ -107,5 +125,6 @@ export function useProgress() {
     setProfile,
     markCelebrated,
     resetProgress,
+    getRecentFor,
   };
 }

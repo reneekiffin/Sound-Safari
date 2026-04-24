@@ -1,16 +1,8 @@
 import { motion } from 'framer-motion';
 import AnimalHost from '../shared/AnimalHost.jsx';
 
-// Cross-animal lookup so each game location shows the right host.  Keeping
-// this here (not in data/games) so the data stays JSON-serialisable.
-const HOST_TO_ANIMAL = {
-  'Leo the Lion': 'lion',
-  'Momo the Monkey': 'monkey',
-  'Polly the Parrot': 'parrot',
-};
-
 export default function LocationCard({ game, locked, stars, onPlay, onHover }) {
-  const animal = HOST_TO_ANIMAL[game.host.name] ?? 'lion';
+  const animal = game.animal ?? 'lion';
 
   return (
     <motion.button

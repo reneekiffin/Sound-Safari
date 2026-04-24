@@ -4,29 +4,23 @@ import AudioButton from '../shared/AudioButton.jsx';
 import Celebration from '../shared/Celebration.jsx';
 import AnimalHost from '../shared/AnimalHost.jsx';
 import GameShell from './GameShell.jsx';
-import { pickSoundBlendingSession } from '../../data/soundBlending.js';
+import { SOUND_BLENDING_ROUNDS } from '../../data/soundBlending.js';
+import { pickSession } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
-import { PHONEME_SCRIPTS } from '../../data/letterSounds.js';
 import { getGame } from '../../data/games.js';
 
-// Sound Blending (Momo the Monkey).
-//
-// Round flow:
-//   1. Monkey says each phoneme with a pause: "c ... a ... t"
-//   2. Then says the whole word once at the end (optional aid the kid can
-//      disable by tapping before it's spoken).
-//   3. Kid taps picture cards (emoji + word) to pick the blend.
-//   4. Same forgiving loop as Letter Sounds — wrong answer shakes, right
-//      answer cheers.
+// Sound Blending (Momo the Monkey). See data/soundBlending.js for shape.
+
 const ROUNDS_PER_SESSION = 10;
 
-export default function SoundBlending({ profile, totalStars, difficulty, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled }) {
+export default function SoundBlending({ profile, totalStars, difficulty, recent, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled, voiceURI }) {
   const game = getGame('sound-blending');
-  const rounds = useMemo(
-    () => pickSoundBlendingSession(difficulty, ROUNDS_PER_SESSION),
-    [difficulty],
-  );
+
+  const { rounds, nextRecent } = useMemo(() => {
+    const pool = SOUND_BLENDING_ROUNDS[difficulty] ?? SOUND_BLENDING_ROUNDS.easy;
+    return pickSession({ pool, recent, size: ROUNDS_PER_SESSION, getId: (r) => r.id });
+  }, [difficulty, recent]);
 
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -34,29 +28,27 @@ export default function SoundBlending({ profile, totalStars, difficulty, onExit,
   const [wrongWord, setWrongWord] = useState(null);
   const [celebrateRound, setCelebrateRound] = useState(false);
   const [done, setDone] = useState(false);
-  const [animatedIndex, setAnimatedIndex] = useState(-1); // which phoneme is highlighted
+  const [animatedIndex, setAnimatedIndex] = useState(-1);
 
-  const { speak, speakPhonemes } = useSpeech({ enabled: audioEnabled });
+  const { speak, speakPhonemeSequence } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI });
   const { play } = useAudio({ enabled: sfxEnabled });
 
   const round = rounds[index];
 
   const playSequence = async ({ includeBlend = true } = {}) => {
     if (!round) return;
-    // Animate each phoneme in time with speech.
     setAnimatedIndex(-1);
     for (let i = 0; i < round.phonemes.length; i += 1) {
       setAnimatedIndex(i);
-      const script = PHONEME_SCRIPTS[round.phonemes[i]] ?? round.phonemes[i];
       // eslint-disable-next-line no-await-in-loop
-      await speak(script, { rate: 0.75, interrupt: i === 0 });
+      await speakPhonemeSequence([round.phonemes[i]], { gap: 0, stretched: true });
       // eslint-disable-next-line no-await-in-loop
-      await new Promise((r) => setTimeout(r, 380));
+      await new Promise((r) => setTimeout(r, 320));
     }
     setAnimatedIndex(-1);
     if (includeBlend) {
       await new Promise((r) => setTimeout(r, 250));
-      await speak(round.answer, { rate: 0.9 });
+      await speak(round.answer, { rate: 0.85 });
     }
   };
 
@@ -88,7 +80,7 @@ export default function SoundBlending({ profile, totalStars, difficulty, onExit,
     } else {
       play('wrong');
       setWrongWord(opt.word);
-      speak('Not quite — listen again!');
+      speak('Not quite. Listen again!');
       setTimeout(() => {
         setWrongWord(null);
         playSequence({ includeBlend: false });
@@ -101,10 +93,11 @@ export default function SoundBlending({ profile, totalStars, difficulty, onExit,
     play('celebrate');
     speak(`Terrific! ${finalScore} out of ${rounds.length}!`);
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
-    onFinish({ earnedStars, score: finalScore, total: rounds.length });
+    onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };
 
   if (done) return null;
+  if (!round) return null;
 
   return (
     <GameShell
@@ -122,10 +115,10 @@ export default function SoundBlending({ profile, totalStars, difficulty, onExit,
             <AnimalHost type="monkey" size={140} happy={celebrateRound} />
           </div>
 
-          <motion.div className="flex items-center gap-2 rounded-[36px] bg-white/90 px-6 py-5 shadow-card">
+          <motion.div className="flex flex-wrap items-center justify-center gap-2 rounded-[36px] bg-white/90 px-6 py-5 shadow-card">
             {round.phonemes.map((p, i) => (
               <motion.span
-                key={`${index}-${i}`}
+                key={`${round.id}-${i}`}
                 animate={
                   animatedIndex === i
                     ? { scale: [1, 1.25, 1], color: '#679148' }
