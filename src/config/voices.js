@@ -66,6 +66,17 @@ export const CHARACTER_VOICES = {
       use_speaker_boost: true,
     },
   },
+  giraffe: {
+    name: 'Gigi',
+    description: 'Sentence Safari host — gentle teacher voice',
+    voiceId: '9yzdeviXkFddZ4Oz8Mok',
+    settings: {
+      stability: 0.55,
+      similarity_boost: 0.8,
+      style: 0.25,
+      use_speaker_boost: true,
+    },
+  },
   sloth: {
     name: 'Sofia',
     description: 'Spanish host — bright, friendly (shares Polly\'s voice for now)',
