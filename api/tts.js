@@ -25,7 +25,20 @@
 //   - Generic { error: 'tts_failed' } on any provider problem.
 //   - Client drops to Web Speech on any non-2xx.
 
-import { VOICE_WHITELIST } from '../src/config/voices.js';
+// Whitelist of voice IDs the proxy will accept.
+//
+// This MUST mirror the voiceId values in src/config/voices.js.  We
+// duplicate the list here (rather than importing from src/) because
+// Vercel's serverless bundler can struggle with cross-directory ESM
+// imports; duplicating keeps the function self-contained and the deploy
+// rock-solid.  If you add or change a voice in src/config/voices.js,
+// update this array too — it's the only hand-maintained sync point.
+const VOICE_WHITELIST = [
+  'kHbsDwAcjwdBlFpchxv4', // Ellie  (elephant)
+  'goT3UYdM9bhm0n2lmKQx', // Leo    (lion)
+  'PoHUWWWMHFrA8z7Q88pu', // Polly  (parrot) + Sofia (sloth) — shared voice
+  'b8gbDO0ybjX1VA89pBdX', // Zara   (zebra)
+];
 
 const ELEVENLABS_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
 const MODEL_ID = 'eleven_multilingual_v2';
