@@ -35,7 +35,7 @@
 // update this array too — it's the only hand-maintained sync point.
 const VOICE_WHITELIST = [
   'kHbsDwAcjwdBlFpchxv4', // Ellie  (elephant)
-  'MYiFAKeVwcvm4z9VsFAR', // Leo    (lion)
+  '2gPFXx8pN3Avh27Dw5Ma', // Leo    (lion)
   'PoHUWWWMHFrA8z7Q88pu', // Polly  (parrot) + Sofia (sloth) — shared voice
   'b8gbDO0ybjX1VA89pBdX', // Zara   (zebra)
   '9yzdeviXkFddZ4Oz8Mok', // Gigi   (giraffe)

@@ -101,16 +101,15 @@ export default function Syllables({ profile, totalStars, difficulty, recent, onE
 
         <div className="mt-2 flex items-center gap-4">
           <AudioButton
-            onPress={async () => {
+            onPress={() => {
               play('tap');
-              await speak(round.word, { rate: 0.85 });
-              // Chant the syllables with pauses so the beats are obvious.
-              for (const s of round.syllables) {
-                // eslint-disable-next-line no-await-in-loop
-                await speak(s, { rate: 0.8 });
-                // eslint-disable-next-line no-await-in-loop
-                await new Promise((r) => setTimeout(r, 260));
-              }
+              // Single utterance so Ellie's voice carries natural
+              // prosody across the whole "word + syllable chant"
+              // instead of pronouncing isolated syllables awkwardly
+              // (e.g. "banana" then bare "ba", "na", "na" sounded off
+              // because TTS voices have no context for fragments).
+              const chant = round.syllables.join(' ... ');
+              speak(`${round.word}. ${chant}.`, { rate: 0.8 });
             }}
             label="Hear the word and its syllables"
           />
