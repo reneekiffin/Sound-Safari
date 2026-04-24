@@ -39,6 +39,7 @@ const VOICE_WHITELIST = [
   'PoHUWWWMHFrA8z7Q88pu', // Polly  (parrot) + Sofia (sloth) — shared voice
   'b8gbDO0ybjX1VA89pBdX', // Zara   (zebra)
   '9yzdeviXkFddZ4Oz8Mok', // Gigi   (giraffe)
+  'gA870ILGhb2a1FhxtmLH', // Finn   (frog)
 ];
 
 const ELEVENLABS_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
