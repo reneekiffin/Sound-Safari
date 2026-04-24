@@ -53,8 +53,12 @@ const MAX_TEXT_LEN = 300;
 
 // Simple sliding-window rate limiter.  Map keyed by IP; value is an
 // array of request timestamps within the current window.
+// Active gameplay can fire several speak() calls in quick succession
+// (instructions, options, feedback).  20/min was tripping during real
+// sessions and silently dropping kids to Web Speech.  60/min is enough
+// for fluid play; ElevenLabs' own spending cap is the real safety net.
 const RATE_WINDOW_MS = 60_000;
-const RATE_MAX = 20;
+const RATE_MAX = 60;
 const rateStore = new Map();
 
 function rateLimited(ip) {

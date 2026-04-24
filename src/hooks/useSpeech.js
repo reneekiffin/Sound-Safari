@@ -176,8 +176,11 @@ export function useSpeech({
         await played;
         return;
       }
-      const stretched = phoneme.repeat(2);
-      const phrase = sampleWord ? `${stretched}... ${sampleWord}.` : `${stretched}.`;
+      // Send the phoneme + sample word as a single natural utterance so
+      // ElevenLabs voices deliver it with proper prosody.  No doubling
+      // (the old `phoneme.repeat(2)` made Leo say "aaaaaa, apple"); the
+      // ellipsis already cues the voice to elongate slightly.
+      const phrase = sampleWord ? `${phoneme}... ${sampleWord}.` : `${phoneme}.`;
       await speak(phrase, { rate: opts.rate ?? 0.85, ...opts });
     },
     [enabled, speak],
@@ -237,7 +240,9 @@ export function useSpeech({
   };
 }
 
-function stretchPhoneme(p) {
+// Exposed so other components (SoundBlending) can build their own
+// composite utterances and send them in a single ElevenLabs call.
+export function stretchPhoneme(p) {
   const MAP = {
     a: 'aaa', e: 'eh', i: 'ih', o: 'oh', u: 'uh',
     b: 'buh', c: 'kuh', d: 'duh', f: 'ffff', g: 'guh',

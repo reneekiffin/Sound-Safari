@@ -7,7 +7,7 @@ import GameShell from './GameShell.jsx';
 import { SOUND_BLENDING_ROUNDS } from '../../data/soundBlending.js';
 import { pickSession } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
-import { useSpeech } from '../../hooks/useSpeech.js';
+import { useSpeech, stretchPhoneme } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
 import { pickCheer, pickWrongCheer, pickFinishCheer, CORRECT_CHEERS } from '../../data/cheers.js';
 
@@ -36,20 +36,45 @@ export default function SoundBlending({ profile, totalStars, difficulty, recent,
 
   const round = rounds[index];
 
+  // Build the blend phrase as a SINGLE utterance so Momo's ElevenLabs
+  // voice carries natural prosody across all the sounds.  The previous
+  // approach made one API call per phoneme (4-5 calls per round) which
+  // chopped the rhythm and burned through the rate limit fast.  Now:
+  //   "buh ... aaa ... tuh ... cat."
+  // — one call, one cache entry, smooth delivery.
   const playSequence = async ({ includeBlend = true } = {}) => {
     if (!round) return;
-    setAnimatedIndex(-1);
-    for (let i = 0; i < round.phonemes.length; i += 1) {
-      setAnimatedIndex(i);
-      // eslint-disable-next-line no-await-in-loop
-      await speakPhonemeSequence([round.phonemes[i]], { gap: 0, stretched: true });
-      // eslint-disable-next-line no-await-in-loop
-      await new Promise((r) => setTimeout(r, 320));
-    }
-    setAnimatedIndex(-1);
-    if (includeBlend) {
-      await new Promise((r) => setTimeout(r, 250));
-      await speak(round.answer, { rate: 0.85 });
+
+    const phonemeText = round.phonemes
+      .map((p) => stretchPhoneme(p))
+      .join(' ... ');
+    const fullText = includeBlend
+      ? `${phonemeText} ... ${round.answer}.`
+      : phonemeText;
+
+    // Highlight phonemes on a timer that runs alongside the speech.
+    // This isn't perfectly synced to ElevenLabs prosody, but visually
+    // it tracks well enough — and crucially it's no longer blocking
+    // the audio on per-phoneme await chains.
+    const phonemeCount = round.phonemes.length;
+    const stepMs = 700;
+    setAnimatedIndex(0);
+    let stepIdx = 0;
+    const animTimer = setInterval(() => {
+      stepIdx += 1;
+      if (stepIdx >= phonemeCount) {
+        clearInterval(animTimer);
+        setAnimatedIndex(-1);
+      } else {
+        setAnimatedIndex(stepIdx);
+      }
+    }, stepMs);
+
+    try {
+      await speak(fullText, { rate: 0.78 });
+    } finally {
+      clearInterval(animTimer);
+      setAnimatedIndex(-1);
     }
   };
 
