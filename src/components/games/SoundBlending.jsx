@@ -1,0 +1,224 @@
+import { motion } from 'framer-motion';
+import { useEffect, useMemo, useState } from 'react';
+import AudioButton from '../shared/AudioButton.jsx';
+import Celebration from '../shared/Celebration.jsx';
+import AnimalHost from '../shared/AnimalHost.jsx';
+import GameShell from './GameShell.jsx';
+import { pickSoundBlendingSession } from '../../data/soundBlending.js';
+import { useAudio } from '../../hooks/useAudio.js';
+import { useSpeech } from '../../hooks/useSpeech.js';
+import { PHONEME_SCRIPTS } from '../../data/letterSounds.js';
+import { getGame } from '../../data/games.js';
+
+// Sound Blending (Momo the Monkey).
+//
+// Round flow:
+//   1. Monkey says each phoneme with a pause: "c ... a ... t"
+//   2. Then says the whole word once at the end (optional aid the kid can
+//      disable by tapping before it's spoken).
+//   3. Kid taps picture cards (emoji + word) to pick the blend.
+//   4. Same forgiving loop as Letter Sounds — wrong answer shakes, right
+//      answer cheers.
+const ROUNDS_PER_SESSION = 10;
+
+export default function SoundBlending({ profile, totalStars, difficulty, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled }) {
+  const game = getGame('sound-blending');
+  const rounds = useMemo(
+    () => pickSoundBlendingSession(difficulty, ROUNDS_PER_SESSION),
+    [difficulty],
+  );
+
+  const [index, setIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [answered, setAnswered] = useState(false);
+  const [wrongWord, setWrongWord] = useState(null);
+  const [celebrateRound, setCelebrateRound] = useState(false);
+  const [done, setDone] = useState(false);
+  const [animatedIndex, setAnimatedIndex] = useState(-1); // which phoneme is highlighted
+
+  const { speak, speakPhonemes } = useSpeech({ enabled: audioEnabled });
+  const { play } = useAudio({ enabled: sfxEnabled });
+
+  const round = rounds[index];
+
+  const playSequence = async ({ includeBlend = true } = {}) => {
+    if (!round) return;
+    // Animate each phoneme in time with speech.
+    setAnimatedIndex(-1);
+    for (let i = 0; i < round.phonemes.length; i += 1) {
+      setAnimatedIndex(i);
+      const script = PHONEME_SCRIPTS[round.phonemes[i]] ?? round.phonemes[i];
+      // eslint-disable-next-line no-await-in-loop
+      await speak(script, { rate: 0.75, interrupt: i === 0 });
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((r) => setTimeout(r, 380));
+    }
+    setAnimatedIndex(-1);
+    if (includeBlend) {
+      await new Promise((r) => setTimeout(r, 250));
+      await speak(round.answer, { rate: 0.9 });
+    }
+  };
+
+  useEffect(() => {
+    if (!round || done) return undefined;
+    setAnswered(false);
+    setWrongWord(null);
+    const t = setTimeout(() => playSequence({ includeBlend: true }), 400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [round, done]);
+
+  const handlePick = (opt) => {
+    if (answered || done) return;
+    if (opt.word === round.answer) {
+      play('correct');
+      speak(`Yes! ${round.answer}!`);
+      setAnswered(true);
+      setCelebrateRound(true);
+      setScore((s) => s + 1);
+      setTimeout(() => {
+        setCelebrateRound(false);
+        if (index + 1 >= rounds.length) {
+          finish(score + 1);
+        } else {
+          setIndex((i) => i + 1);
+        }
+      }, 900);
+    } else {
+      play('wrong');
+      setWrongWord(opt.word);
+      speak('Not quite — listen again!');
+      setTimeout(() => {
+        setWrongWord(null);
+        playSequence({ includeBlend: false });
+      }, 600);
+    }
+  };
+
+  const finish = (finalScore) => {
+    setDone(true);
+    play('celebrate');
+    speak(`Terrific! ${finalScore} out of ${rounds.length}!`);
+    const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
+    onFinish({ earnedStars, score: finalScore, total: rounds.length });
+  };
+
+  if (done) return null;
+
+  return (
+    <GameShell
+      game={game}
+      profile={profile}
+      totalStars={totalStars}
+      round={index + 1}
+      totalRounds={rounds.length}
+      onExit={onExit}
+      onOpenSettings={onOpenSettings}
+    >
+      <div className="flex flex-col items-center text-center">
+        <div className="relative flex h-44 w-full items-center justify-center">
+          <div className="absolute left-2 top-0 sm:left-6">
+            <AnimalHost type="monkey" size={140} happy={celebrateRound} />
+          </div>
+
+          <motion.div className="flex items-center gap-2 rounded-[36px] bg-white/90 px-6 py-5 shadow-card">
+            {round.phonemes.map((p, i) => (
+              <motion.span
+                key={`${index}-${i}`}
+                animate={
+                  animatedIndex === i
+                    ? { scale: [1, 1.25, 1], color: '#679148' }
+                    : { scale: 1, color: '#7a3214' }
+                }
+                transition={{ duration: 0.5 }}
+                className="font-letter text-4xl font-bold sm:text-5xl"
+              >
+                {p}
+              </motion.span>
+            ))}
+          </motion.div>
+        </div>
+
+        <div className="mt-2 flex items-center gap-4">
+          <AudioButton
+            onPress={() => {
+              play('tap');
+              playSequence({ includeBlend: true });
+            }}
+            label="Hear the sounds again"
+          />
+          <p className="max-w-xs text-left font-body text-base text-terracotta-600/90 sm:text-lg">
+            Listen to each sound. Then tap the picture that matches!
+          </p>
+        </div>
+
+        <div
+          className={[
+            'mt-6 grid w-full gap-4',
+            round.options.length > 3 ? 'grid-cols-2' : 'grid-cols-3',
+          ].join(' ')}
+        >
+          {round.options.map((opt) => (
+            <PictureCard
+              key={opt.word}
+              option={opt}
+              state={
+                answered && opt.word === round.answer
+                  ? 'correct'
+                  : wrongWord === opt.word
+                  ? 'wrong'
+                  : 'idle'
+              }
+              onTap={() => handlePick(opt)}
+              onPreview={() => speak(opt.word, { rate: 0.9 })}
+            />
+          ))}
+        </div>
+      </div>
+
+      <Celebration
+        show={celebrateRound}
+        emoji="🐒"
+        title="Blended!"
+        subtitle="You smooshed those sounds together!"
+      />
+    </GameShell>
+  );
+}
+
+function PictureCard({ option, state, onTap, onPreview }) {
+  return (
+    <motion.button
+      onClick={onTap}
+      onHoverStart={onPreview}
+      onFocus={onPreview}
+      aria-label={option.word}
+      whileTap={{ scale: 0.93 }}
+      whileHover={{ y: -4 }}
+      animate={
+        state === 'wrong'
+          ? { x: [-10, 10, -6, 6, 0] }
+          : state === 'correct'
+          ? { scale: [1, 1.1, 1], rotate: [0, -6, 6, 0] }
+          : undefined
+      }
+      transition={{ type: 'spring', stiffness: 320, damping: 18 }}
+      className={[
+        'focus-ring flex flex-col items-center rounded-[28px] border-4 bg-white p-4 text-center shadow-card',
+        state === 'correct'
+          ? 'border-sage-400 bg-sage-100'
+          : state === 'wrong'
+          ? 'border-parrot-400 bg-parrot-400/10'
+          : 'border-terracotta-200 hover:border-terracotta-300',
+      ].join(' ')}
+    >
+      <span className="text-6xl sm:text-7xl" aria-hidden="true">
+        {option.emoji}
+      </span>
+      <span className="mt-2 font-letter text-2xl font-bold text-terracotta-600">
+        {option.word}
+      </span>
+    </motion.button>
+  );
+}
