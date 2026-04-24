@@ -64,64 +64,70 @@ exhausted so kids never run out of content. This is what makes each
 Add more rounds to any game by editing the matching file in `src/data/`
 — no code changes required.
 
-## Audio / voice quality
+## Audio / voice architecture
 
-Three layers, in priority order, each falling through cleanly when the
-layer above isn't configured:
+Sound Safari uses ElevenLabs for its six voiced characters (Ellie the
+Elephant, Leo the Lion, Zara the Zebra, Skippy the Squirrel, Penny the
+Panda, Sofia the Sloth).  Every other mascot and any feedback line
+without a registered voice falls through to the browser's Web Speech
+API.
 
-### 1. Natural cloud voice (OpenAI TTS) — recommended
+### How the server proxy works
 
-Open the **Parent Zone → Voice → Natural voice (OpenAI)**, paste an
-OpenAI API key, and pick a voice (Nova / Shimmer / Coral / etc.).
-From then on, every instruction, letter sound, and feedback line is
-synthesised by OpenAI's `gpt-4o-mini-tts` model, which sounds
-dramatically more natural than any browser voice.
-
-- Audio is **cached per-voice-per-phrase on the device**, so repeated
-  phrases ("Try again!", letter prompts, host greetings) cost nothing
-  after the first time.
-- Cost: ~$0.015 per 1k characters. A full 10-round session typically
-  costs a fraction of a cent.
-- The API key is stored **only in this browser's localStorage** and
-  sent only to OpenAI's endpoint.
-- If the call fails (offline, rate-limited, bad key), Sound Safari
-  falls back to Web Speech silently so the game never stalls.
-
-### 2. Browser voice (Web Speech)
-
-If no cloud provider is configured, we use the Web Speech API and
-auto-rank available voices to prefer `natural` / `neural` / `premium` /
-`enhanced` ones. Parents can also pin a specific voice in the Parent
-Zone. Recommended picks:
-
-- **iPad / iPhone / macOS Safari**: "Samantha (Enhanced)" or any
-  "Premium" / "Enhanced" voice.
-- **Chrome / Edge**: any "Natural" / "Neural" voice, or "Google US
-  English". Avoid anything labelled "Compact".
-- **Firefox**: voices are OS-provided; pick the best English voice.
-
-### 3. Recorded voice-over clips (optional override)
-
-The highest quality is pre-recorded audio. Register clips with
-`registerClipBundle` (see `src/hooks/useAudioClips.js`) and any matching
-key plays the clip instead of going out to cloud or Web Speech:
-
-```js
-import { registerClipBundle } from './hooks/useAudioClips';
-
-registerClipBundle({
-  'letter:a': '/audio/letters/a.mp3',
-  'phoneme:m': '/audio/phonemes/m.mp3',
-  'word:apple': '/audio/words/apple.mp3',
-});
 ```
+Browser  ──POST /api/tts──▶  Vercel serverless function  ──▶  ElevenLabs
+{ text,                      · POST-only, 405 otherwise                  returns
+  voiceId,                   · validates text (≤300 char) + voiceId       audio/mpeg
+  settings }                 · 20 req/min/IP rate limit
+                             · holds ELEVENLABS_API_KEY
+                               (server-side env var, never in bundle)
+```
+
+- The key lives **only** in Vercel's env (`ELEVENLABS_API_KEY`).  It is
+  never prefixed with `VITE_` and never exposed to the browser.
+- Voice IDs are whitelisted in `src/config/voices.js` — the server
+  imports the same whitelist, so requests for arbitrary premium voices
+  are rejected before they hit the provider.
+- Responses use `Cache-Control: public, max-age=31536000, immutable`.
+  Same `(voiceId, text)` → same audio, so repeat phrases hit the
+  browser / Vercel edge cache and don't cost another call.
+
+### Setting a voice ID
+
+Each of the six characters has a `voiceId: '..._PLACEHOLDER'` in
+`src/config/voices.js`.  To go live:
+
+1. Open ElevenLabs → Voice Library → preview and add six voices.
+2. VoiceLab → click a voice → **Copy Voice ID** (looks like
+   `21m00Tcm4TlvDq8ikWAM`).
+3. Paste it over the `*_PLACEHOLDER` in `src/config/voices.js`.
+4. Push to GitHub — Vercel auto-redeploys.
+
+Voices that still hold a `_PLACEHOLDER` skip the proxy entirely and go
+straight to Web Speech, so the app never breaks while you're
+configuring.
+
+### Spending cap
+
+Set a hard cap at **elevenlabs.io → Dashboard → Usage**.  The
+rate-limiter in `api/tts.js` is abuse-prevention only (it resets
+per serverless instance); the spending cap is the real safety net.
+
+### Three TTS paths (in priority order)
+
+1. **Recorded clip** — if a voice-over mp3 is registered via
+   `registerClipBundle` in `src/hooks/useAudioClips.js`, it plays.
+2. **Cloud TTS** (ElevenLabs) — routed through the server proxy by
+   default.  Parents can flip to "My own key" in the Parent Zone to
+   call ElevenLabs directly with their own key instead.
+3. **Web Speech** — the browser's built-in voice.  Used for all
+   non-voiced mascots, and as a silent fallback if the proxy fails.
 
 ### Contextual phonemes
 
-Letter Sounds speaks a carrier phrase ("A says aaah, like apple") rather
-than a bare phoneme. Every TTS model (browser, cloud) pronounces real
-English correctly, so this completely side-steps the robotic
-mis-readings of isolated phonemes.
+Letter Sounds speaks a carrier phrase ("uh… umbrella") rather than a
+bare phoneme.  TTS pronounces real English correctly, so this
+side-steps robotic mis-readings of isolated phonemes.
 
 ## Parent Zone
 
