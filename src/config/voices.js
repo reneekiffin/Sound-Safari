@@ -91,13 +91,53 @@ export const CHARACTER_VOICES = {
   sloth: {
     name: 'Sofia',
     description: 'Spanish host — bright, friendly (shares Polly\'s voice for now)',
-    // Reuses Polly's voice for the Spanish game.  Sharing a voice across
-    // characters is fine — the server whitelist is derived from voice
-    // IDs and duplicates are harmless.  Swap in a dedicated voice ID
-    // here any time Sofia should sound distinct.
     voiceId: 'PoHUWWWMHFrA8z7Q88pu',
     settings: {
       stability: 0.55,
+      similarity_boost: 0.8,
+      style: 0.3,
+      use_speaker_boost: true,
+    },
+  },
+  squirrel: {
+    name: 'Skippy',
+    description: 'Sound-Alikes host — quick-witted, energetic',
+    voiceId: 'XJ2fW4ybq7HouelYYGcL',
+    settings: {
+      stability: 0.4,
+      similarity_boost: 0.75,
+      style: 0.45,
+      use_speaker_boost: true,
+    },
+  },
+  toucan: {
+    name: 'Toby',
+    description: 'Opposites host — well-rounded storyteller',
+    voiceId: 'vGQNBgLaiM3EdZtxIiuY',
+    settings: {
+      stability: 0.5,
+      similarity_boost: 0.8,
+      style: 0.3,
+      use_speaker_boost: true,
+    },
+  },
+  owl: {
+    name: 'Ollie',
+    description: 'Venn Venn host — wise, thoughtful, steady',
+    voiceId: 'y3UNfL9XC5Bb5htg8B0q',
+    settings: {
+      stability: 0.65,
+      similarity_boost: 0.82,
+      style: 0.2,
+      use_speaker_boost: true,
+    },
+  },
+  panda: {
+    name: 'Penny',
+    description: 'Word Builders host — cuddly, sweet, gently musical',
+    voiceId: 'pPdl9cQBQq4p6mRkZy2Z',
+    settings: {
+      stability: 0.5,
       similarity_boost: 0.8,
       style: 0.3,
       use_speaker_boost: true,
@@ -108,9 +148,7 @@ export const CHARACTER_VOICES = {
   // their games fully functional.  Un-comment the relevant block and
   // paste a voice ID to bring a character online.
   //
-  // squirrel: { name: 'Skippy', voiceId: '_PLACEHOLDER', settings: { stability: 0.35, similarity_boost: 0.7, style: 0.45, use_speaker_boost: true } },
-  // panda:    { name: 'Penny',  voiceId: '_PLACEHOLDER', settings: { stability: 0.5,  similarity_boost: 0.8, style: 0.3,  use_speaker_boost: true } },
-  // monkey, toucan, frog, giraffe, owl — add here as you go.
+  // monkey: { name: 'Momo', voiceId: '_PLACEHOLDER', settings: { stability: 0.4, similarity_boost: 0.75, style: 0.45, use_speaker_boost: true } },
 };
 
 // Whitelist of voice IDs the server will accept.  Imported by
