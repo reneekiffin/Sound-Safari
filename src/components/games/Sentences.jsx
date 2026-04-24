@@ -4,7 +4,7 @@ import AudioButton from '../shared/AudioButton.jsx';
 import Celebration from '../shared/Celebration.jsx';
 import PromptHeader from '../shared/PromptHeader.jsx';
 import GameShell from './GameShell.jsx';
-import { SENTENCES_ROUNDS } from '../../data/sentences.js';
+import { SENTENCES_LESSONS, SENTENCES_ROUNDS } from '../../data/sentences.js';
 import { pickSession } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
@@ -27,10 +27,26 @@ const ROUNDS_PER_SESSION = 10;
 export default function Sentences({ profile, totalStars, difficulty, recent, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled, voiceURI, cloud }) {
   const game = getGame('sentences');
 
+  // Optional lesson override ('all' = mix from the current difficulty tier).
+  // Reset the session key when the lesson changes so the board restarts.
+  const [lessonId, setLessonId] = useState('all');
+  const [lessonKey, setLessonKey] = useState(0);
+
   const { rounds, nextRecent } = useMemo(() => {
-    const pool = SENTENCES_ROUNDS[difficulty] ?? SENTENCES_ROUNDS.easy;
-    return pickSession({ pool, recent, size: ROUNDS_PER_SESSION, getId: (r) => r.id });
-  }, [difficulty, recent]);
+    const pool =
+      lessonId === 'all'
+        ? SENTENCES_ROUNDS[difficulty] ?? SENTENCES_ROUNDS.easy
+        : SENTENCES_LESSONS.find((l) => l.id === lessonId)?.rounds ?? [];
+    // balanceBy 'category' spreads the picks across lessons so "easy"
+    // and "medium" tiers don't hand the kid 8 rounds of one lesson.
+    return pickSession({
+      pool,
+      recent,
+      size: ROUNDS_PER_SESSION,
+      getId: (r) => r.id,
+      balanceBy: 'category',
+    });
+  }, [difficulty, recent, lessonId, lessonKey]);
 
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -96,6 +112,16 @@ export default function Sentences({ profile, totalStars, difficulty, recent, onE
       onOpenSettings={onOpenSettings}
     >
       <div className="flex flex-col items-center text-center">
+        <LessonPicker
+          value={lessonId}
+          onChange={(id) => {
+            setLessonId(id);
+            setIndex(0);
+            setScore(0);
+            setLessonKey((k) => k + 1);
+          }}
+        />
+
         <PromptHeader animal="giraffe" mascotSize={110} happy={celebrateRound} hostLabel="Gigi says...">
           <p className="mt-1 font-heading text-lg font-extrabold text-terracotta-600 sm:text-xl">
             {round.kind === 'order'
@@ -319,4 +345,32 @@ function shuffle(arr) {
     [out[0], out[1]] = [out[1], out[0]];
   }
   return out;
+}
+
+// In-game lesson picker.  "Mixed" defers to the difficulty setting; the
+// named options scope the session to a specific subject-verb lesson.
+function LessonPicker({ value, onChange }) {
+  const opts = [
+    { id: 'all', label: 'Mixed' },
+    ...SENTENCES_LESSONS.map((l) => ({ id: l.id, label: l.short })),
+  ];
+  return (
+    <div className="mb-3 flex w-full flex-wrap items-center justify-center gap-2">
+      <span className="font-body text-xs font-bold uppercase tracking-widest text-terracotta-500">
+        Lesson
+      </span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label="Choose a grammar lesson"
+        className="focus-ring rounded-full border-4 border-terracotta-200 bg-white px-3 py-1.5 font-heading text-sm font-extrabold text-terracotta-600"
+      >
+        {opts.map((opt) => (
+          <option key={opt.id} value={opt.id}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 }

@@ -12,6 +12,8 @@ import Syllables from './components/games/Syllables.jsx';
 import Opposites from './components/games/Opposites.jsx';
 import Similarities from './components/games/Similarities.jsx';
 import Sentences from './components/games/Sentences.jsx';
+import OddOneOut from './components/games/OddOneOut.jsx';
+import VennDiagrams from './components/games/VennDiagrams.jsx';
 import { useProgress } from './hooks/useProgress.js';
 import { useSpeech } from './hooks/useSpeech.js';
 import { useAudio } from './hooks/useAudio.js';
@@ -28,6 +30,8 @@ const GAME_COMPONENTS = {
   opposites: Opposites,
   similarities: Similarities,
   sentences: Sentences,
+  'odd-one-out': OddOneOut,
+  'venn-diagrams': VennDiagrams,
 };
 
 function nextMilestone(stars) {
@@ -247,9 +251,11 @@ function endGameEmoji(gameId) {
     monkey: '🐒',
     parrot: '🦜',
     elephant: '🐘',
-    toucan: '🦜',
+    toucan: '🐦',
     frog: '🐸',
     giraffe: '🦒',
+    zebra: '🦓',
+    owl: '🦉',
   };
   return map[game?.animal] ?? '🎉';
 }

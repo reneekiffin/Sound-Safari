@@ -17,6 +17,8 @@ const ANIMAL_EMOJI = {
   toucan: '🐦',
   frog: '🐸',
   giraffe: '🦒',
+  zebra: '🦓',
+  owl: '🦉',
 };
 
 export default function AnimalHost({
