@@ -14,6 +14,8 @@ import Similarities from './components/games/Similarities.jsx';
 import Sentences from './components/games/Sentences.jsx';
 import OddOneOut from './components/games/OddOneOut.jsx';
 import VennDiagrams from './components/games/VennDiagrams.jsx';
+import WordBuilders from './components/games/WordBuilders.jsx';
+import Homophones from './components/games/Homophones.jsx';
 import { useProgress } from './hooks/useProgress.js';
 import { useSpeech } from './hooks/useSpeech.js';
 import { useAudio } from './hooks/useAudio.js';
@@ -32,6 +34,8 @@ const GAME_COMPONENTS = {
   sentences: Sentences,
   'odd-one-out': OddOneOut,
   'venn-diagrams': VennDiagrams,
+  'word-builders': WordBuilders,
+  homophones: Homophones,
 };
 
 function nextMilestone(stars) {
@@ -59,13 +63,27 @@ export default function App() {
   const [endScreen, setEndScreen] = useState(null);
   const [milestone, setMilestone] = useState(null);
 
-  const cloud = state.settings.ttsProvider === 'openai' && state.settings.ttsApiKey
-    ? {
+  // Build the cloud config based on which provider the parent has
+  // activated — each provider has its own key slot in settings so
+  // switching back-and-forth doesn't lose the other's key.
+  const cloud = (() => {
+    const p = state.settings.ttsProvider;
+    if (p === 'openai' && state.settings.ttsApiKey) {
+      return {
         provider: 'openai',
         apiKey: state.settings.ttsApiKey,
         voice: state.settings.ttsCloudVoice ?? 'nova',
-      }
-    : null;
+      };
+    }
+    if (p === 'elevenlabs' && state.settings.ttsElevenLabsKey) {
+      return {
+        provider: 'elevenlabs',
+        apiKey: state.settings.ttsElevenLabsKey,
+        voice: state.settings.ttsCloudVoice,
+      };
+    }
+    return null;
+  })();
 
   const { speak, voices } = useSpeech({
     enabled: state.settings.audioEnabled,
@@ -256,6 +274,8 @@ function endGameEmoji(gameId) {
     giraffe: '🦒',
     zebra: '🦓',
     owl: '🦉',
+    panda: '🐼',
+    squirrel: '🐿️',
   };
   return map[game?.animal] ?? '🎉';
 }

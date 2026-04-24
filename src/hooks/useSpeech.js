@@ -64,6 +64,7 @@ export function useSpeech({
   pitch = 1.1,
   preferredVoiceURI,
   cloud, // { provider, apiKey, voice, speed }
+  speaker, // optional mascot key ('lion' | 'monkey' | ...) for per-voice routing
 } = {}) {
   const [voices, setVoices] = useState([]);
 
@@ -115,6 +116,7 @@ export function useSpeech({
           provider: cloud.provider,
           apiKey: cloud.apiKey,
           voice: cloud.voice,
+          speaker: opts.speaker ?? speaker,
           speed: opts.rate ?? cloud.speed ?? 1,
         });
         if (played) return;
@@ -141,7 +143,7 @@ export function useSpeech({
         utter.onerror = () => resolve();
       });
     },
-    [enabled, cloudEnabled, cloud?.provider, cloud?.apiKey, cloud?.voice, cloud?.speed, pickVoice, pitch, rate],
+    [enabled, cloudEnabled, cloud?.provider, cloud?.apiKey, cloud?.voice, cloud?.speed, speaker, pickVoice, pitch, rate],
   );
 
   // Speak a phoneme by wrapping it in a carrier phrase that TTS handles

@@ -164,6 +164,36 @@ export const GAMES = [
     accent: '#2aa29a',
     bg: 'linear-gradient(160deg, #e3f0fb 0%, #9fc5de 100%)',
   },
+  {
+    id: 'word-builders',
+    title: 'Word Builders',
+    subtitle: 'Finish the word with the right letters!',
+    ageRange: '3–6',
+    levels: ['little', 'growing'],
+    host: {
+      name: 'Penny the Panda',
+      greeting: "Hi! I'm Penny.  Let's build some words together!",
+    },
+    animal: 'panda',
+    locationLabel: 'Bamboo Patch',
+    accent: '#2aa29a',
+    bg: 'linear-gradient(160deg, #f5f5f5 0%, #d9d9d9 100%)',
+  },
+  {
+    id: 'homophones',
+    title: 'Sound-Alikes',
+    subtitle: 'Words that sound the same!',
+    ageRange: '6–10',
+    levels: ['growing', 'brave', 'big'],
+    host: {
+      name: 'Skippy the Squirrel',
+      greeting: "Hey!  I'm Skippy.  Some words sound the same but mean different things!",
+    },
+    animal: 'squirrel',
+    locationLabel: 'Oak Hollow',
+    accent: '#a0441a',
+    bg: 'linear-gradient(160deg, #fbefd4 0%, #d9b384 100%)',
+  },
 ];
 
 export const getGame = (id) => GAMES.find((g) => g.id === id);

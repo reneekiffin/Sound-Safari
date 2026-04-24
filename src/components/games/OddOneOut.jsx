@@ -9,6 +9,7 @@ import { pickSession } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
+import { pickCheer, pickWrongCheer, pickFinishCheer, CORRECT_CHEERS } from '../../data/cheers.js';
 
 // Odd One Out (Zara the Zebra).  Simple "tap the one that's different"
 // flow.  Rounds span shapes, colours, animals, food, vehicles, size, and
@@ -32,7 +33,7 @@ export default function OddOneOut({ profile, totalStars, difficulty, recent, onE
   const [celebrateRound, setCelebrateRound] = useState(false);
   const [done, setDone] = useState(false);
 
-  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
+  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud, speaker: 'zebra' });
   const { play } = useAudio({ enabled: sfxEnabled });
   const round = rounds[index];
 
@@ -58,7 +59,7 @@ export default function OddOneOut({ profile, totalStars, difficulty, recent, onE
     if (answered || done) return;
     if (item.odd) {
       play('correct');
-      speak('Yes! That one is different!');
+      speak(`${pickCheer(CORRECT_CHEERS)} That one is different!`);
       setAnswered(true);
       setCelebrateRound(true);
       setScore((s) => s + 1);
@@ -70,7 +71,7 @@ export default function OddOneOut({ profile, totalStars, difficulty, recent, onE
     } else {
       play('wrong');
       setWrongId(item.key);
-      speak('Try again!');
+      speak(pickWrongCheer());
       setTimeout(() => setWrongId(null), 500);
     }
   };
@@ -78,7 +79,7 @@ export default function OddOneOut({ profile, totalStars, difficulty, recent, onE
   const finish = (finalScore) => {
     setDone(true);
     play('celebrate');
-    speak(`Zippy work! ${finalScore} out of ${rounds.length}!`);
+    speak(`${pickFinishCheer()} ${finalScore} out of ${rounds.length}!`);
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
     onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };

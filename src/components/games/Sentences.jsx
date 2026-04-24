@@ -9,6 +9,7 @@ import { pickSession } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
+import { pickCheer, pickWrongCheer, pickFinishCheer, CORRECT_CHEERS } from '../../data/cheers.js';
 
 // Sentence Builder (Gigi the Giraffe).  Three round shapes:
 //   - fill   : fill the blank in a short sentence
@@ -56,7 +57,7 @@ export default function Sentences({ profile, totalStars, difficulty, recent, onE
   // reset their picked/placed state so the kid can try again cleanly.
   const [wrongKey, setWrongKey] = useState(0);
 
-  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
+  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud, speaker: 'giraffe' });
   const { play } = useAudio({ enabled: sfxEnabled });
   const round = rounds[index];
 
@@ -75,7 +76,7 @@ export default function Sentences({ profile, totalStars, difficulty, recent, onE
   const advance = (correct) => {
     if (correct) {
       play('correct');
-      speak('Yes! Great sentence!');
+      speak(`${pickCheer(CORRECT_CHEERS)} Great sentence!`);
       setScore((s) => s + 1);
       setCelebrateRound(true);
       setTimeout(() => {
@@ -85,7 +86,7 @@ export default function Sentences({ profile, totalStars, difficulty, recent, onE
       }, 1000);
     } else {
       play('wrong');
-      speak('Hmm, not quite — try again!');
+      speak(pickWrongCheer());
       setWrongKey((k) => k + 1);
     }
   };
@@ -93,7 +94,7 @@ export default function Sentences({ profile, totalStars, difficulty, recent, onE
   const finish = (finalScore) => {
     setDone(true);
     play('celebrate');
-    speak(`Sentence stars! ${finalScore} out of ${rounds.length}!`);
+    speak(`${pickFinishCheer()} ${finalScore} out of ${rounds.length}!`);
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
     onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };

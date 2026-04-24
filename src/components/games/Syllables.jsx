@@ -9,6 +9,7 @@ import { pickSession } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
+import { pickCheer, pickWrongCheer, pickFinishCheer, CORRECT_CHEERS } from '../../data/cheers.js';
 
 // Syllables (Ellie the Elephant).  Two round shapes mixed in each session:
 // "count" (how many syllables?) and "build" (rebuild the word from chunks).
@@ -28,7 +29,7 @@ export default function Syllables({ profile, totalStars, difficulty, recent, onE
   const [done, setDone] = useState(false);
   const [celebrateRound, setCelebrateRound] = useState(false);
 
-  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
+  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud, speaker: 'elephant' });
   const { play } = useAudio({ enabled: sfxEnabled });
   const round = rounds[index];
 
@@ -60,7 +61,7 @@ export default function Syllables({ profile, totalStars, difficulty, recent, onE
   const finish = (finalScore) => {
     setDone(true);
     play('celebrate');
-    speak(`Trumpeting trunks! ${finalScore} out of ${rounds.length}!`);
+    speak(`${pickFinishCheer()} ${finalScore} out of ${rounds.length}!`);
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
     onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };

@@ -9,6 +9,7 @@ import { pickSession, shuffleOptions } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
+import { pickCheer, pickWrongCheer, pickFinishCheer, CORRECT_CHEERS } from '../../data/cheers.js';
 
 // Rhyme Time (Polly the Parrot).  See data/rhymeTime.js for shape.
 
@@ -30,7 +31,7 @@ export default function RhymeTime({ profile, totalStars, difficulty, recent, onE
   const [celebrateRound, setCelebrateRound] = useState(false);
   const [done, setDone] = useState(false);
 
-  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
+  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud, speaker: 'parrot' });
   const { play } = useAudio({ enabled: sfxEnabled });
 
   const round = rounds[index];
@@ -47,7 +48,7 @@ export default function RhymeTime({ profile, totalStars, difficulty, recent, onE
     if (answered || done) return;
     if (opt.word === round.answer) {
       play('correct');
-      speak(`Squawk! ${round.prompt} and ${opt.word}!`);
+      speak(`${pickCheer(CORRECT_CHEERS)} ${round.prompt} and ${opt.word} rhyme!`);
       setAnswered(true);
       setCelebrateRound(true);
       setScore((s) => s + 1);
@@ -62,7 +63,7 @@ export default function RhymeTime({ profile, totalStars, difficulty, recent, onE
     } else {
       play('wrong');
       setWrongWord(opt.word);
-      speak(`${opt.word} does not rhyme with ${round.prompt}. Try again!`);
+      speak(`${pickWrongCheer()}`);
       setTimeout(() => setWrongWord(null), 600);
     }
   };
@@ -70,7 +71,7 @@ export default function RhymeTime({ profile, totalStars, difficulty, recent, onE
   const finish = (finalScore) => {
     setDone(true);
     play('celebrate');
-    speak(`Fantastic rhyming! ${finalScore} out of ${rounds.length}!`);
+    speak(`${pickFinishCheer()} ${finalScore} out of ${rounds.length}!`);
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
     onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };

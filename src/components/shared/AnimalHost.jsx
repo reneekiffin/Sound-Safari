@@ -19,6 +19,8 @@ const ANIMAL_EMOJI = {
   giraffe: '🦒',
   zebra: '🦓',
   owl: '🦉',
+  panda: '🐼',
+  squirrel: '🐿️',
 };
 
 export default function AnimalHost({
