@@ -3,6 +3,7 @@ import Modal from '../shared/Modal.jsx';
 import Button from '../shared/Button.jsx';
 import ProgressBar from '../shared/ProgressBar.jsx';
 import { GAMES, LEVELS } from '../../data/games.js';
+import { OPENAI_VOICES } from '../../hooks/useCloudSpeech.js';
 
 const DIFFICULTIES = [
   { id: 'easy', label: 'Gentle' },
@@ -180,32 +181,11 @@ export default function ParentZone({
             </div>
           </div>
 
-          <div className="mt-4">
-            <label className="flex flex-col gap-1">
-              <span className="font-body text-sm font-bold text-terracotta-500">
-                Voice (browser-dependent; pick the clearest one for your device)
-              </span>
-              <select
-                value={state.settings.voiceURI ?? ''}
-                onChange={(e) =>
-                  onUpdateSettings({ voiceURI: e.target.value || null })
-                }
-                className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-base font-extrabold text-terracotta-600"
-              >
-                <option value="">Auto (best available)</option>
-                {(voices ?? []).map((v) => (
-                  <option key={v.voiceURI} value={v.voiceURI}>
-                    {v.name} ({v.lang})
-                  </option>
-                ))}
-              </select>
-              <span className="font-body text-xs text-terracotta-500/80">
-                Tip: on iPad look for "Samantha (Enhanced)". On Chrome look for
-                a "Google US English" or any "Natural" voice. These sound the
-                least robotic.
-              </span>
-            </label>
-          </div>
+          <VoiceSection
+            state={state}
+            voices={voices}
+            onUpdateSettings={onUpdateSettings}
+          />
         </section>
 
         {/* Danger zone */}
@@ -240,6 +220,136 @@ export default function ParentZone({
         </section>
       </div>
     </Modal>
+  );
+}
+
+// Voice & TTS settings — split into two tabs:
+//   - Browser voice (free, Web Speech)
+//   - Cloud voice (much more natural, needs an API key, costs ~pennies)
+function VoiceSection({ state, voices, onUpdateSettings }) {
+  const provider = state.settings.ttsProvider ?? 'browser';
+  const isCloud = provider === 'openai';
+  const [showKey, setShowKey] = useState(false);
+
+  return (
+    <div className="mt-4 rounded-2xl bg-white/70 p-3">
+      <p className="font-heading text-base font-extrabold text-terracotta-600">
+        Voice
+      </p>
+
+      <div className="mt-2 flex gap-2">
+        <button
+          onClick={() => onUpdateSettings({ ttsProvider: 'browser' })}
+          className={[
+            'focus-ring flex-1 rounded-xl border-4 px-3 py-2 font-heading text-sm font-extrabold transition-colors',
+            provider === 'browser'
+              ? 'border-terracotta-500 bg-terracotta-400 text-white'
+              : 'border-terracotta-200 bg-white text-terracotta-600',
+          ].join(' ')}
+        >
+          Browser voice
+          <span className="block text-[11px] font-bold opacity-80">free, varies by device</span>
+        </button>
+        <button
+          onClick={() => onUpdateSettings({ ttsProvider: 'openai' })}
+          className={[
+            'focus-ring flex-1 rounded-xl border-4 px-3 py-2 font-heading text-sm font-extrabold transition-colors',
+            provider === 'openai'
+              ? 'border-jungle-400 bg-jungle-400 text-white'
+              : 'border-terracotta-200 bg-white text-terracotta-600',
+          ].join(' ')}
+        >
+          Natural voice (OpenAI)
+          <span className="block text-[11px] font-bold opacity-80">API key, very natural</span>
+        </button>
+      </div>
+
+      {provider === 'browser' && (
+        <label className="mt-3 flex flex-col gap-1">
+          <span className="font-body text-sm font-bold text-terracotta-500">
+            Browser voice
+          </span>
+          <select
+            value={state.settings.voiceURI ?? ''}
+            onChange={(e) =>
+              onUpdateSettings({ voiceURI: e.target.value || null })
+            }
+            className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-base font-extrabold text-terracotta-600"
+          >
+            <option value="">Auto (best available)</option>
+            {(voices ?? []).map((v) => (
+              <option key={v.voiceURI} value={v.voiceURI}>
+                {v.name} ({v.lang})
+              </option>
+            ))}
+          </select>
+          <span className="font-body text-xs text-terracotta-500/80">
+            Tip: iPad → "Samantha (Enhanced)". Chrome → any "Natural" voice.
+          </span>
+        </label>
+      )}
+
+      {isCloud && (
+        <div className="mt-3 flex flex-col gap-3">
+          <label className="flex flex-col gap-1">
+            <span className="font-body text-sm font-bold text-terracotta-500">
+              OpenAI voice
+            </span>
+            <select
+              value={state.settings.ttsCloudVoice ?? 'nova'}
+              onChange={(e) =>
+                onUpdateSettings({ ttsCloudVoice: e.target.value })
+              }
+              className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-base font-extrabold text-terracotta-600"
+            >
+              {OPENAI_VOICES.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-1">
+            <span className="font-body text-sm font-bold text-terracotta-500">
+              OpenAI API key
+            </span>
+            <div className="flex gap-2">
+              <input
+                type={showKey ? 'text' : 'password'}
+                value={state.settings.ttsApiKey ?? ''}
+                onChange={(e) => onUpdateSettings({ ttsApiKey: e.target.value })}
+                placeholder="sk-..."
+                className="focus-ring flex-1 rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-body text-base text-terracotta-600"
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <button
+                type="button"
+                onClick={() => setShowKey((s) => !s)}
+                className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-sm font-extrabold text-terracotta-600"
+              >
+                {showKey ? 'Hide' : 'Show'}
+              </button>
+            </div>
+          </label>
+
+          <div className="rounded-xl bg-jungle-400/10 p-3 font-body text-xs text-terracotta-600/90">
+            <strong className="font-extrabold text-jungle-500">How this works.</strong>{' '}
+            Speech is sent to OpenAI's TTS API (<span className="font-mono">gpt-4o-mini-tts</span>)
+            and the audio is cached on this device, so repeated phrases cost nothing
+            after the first time. The key is stored only in this browser's
+            localStorage. Roughly <span className="font-mono">$0.015</span> per 1k
+            characters; a 10-round session typically costs a fraction of a cent.
+          </div>
+
+          <p className="font-body text-xs text-terracotta-500/80">
+            Don't have a key? Get one at{' '}
+            <span className="font-mono">platform.openai.com/api-keys</span>.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 

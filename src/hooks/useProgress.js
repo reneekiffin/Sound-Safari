@@ -20,7 +20,10 @@ const DEFAULT_STATE = {
     sfxEnabled: true,
     difficulty: 'easy', // 'easy' | 'medium' | 'hard'
     level: 'growing', // 'little' | 'growing' | 'brave' | 'big' | 'all'
-    voiceURI: null, // parent-picked TTS voice, null = auto
+    voiceURI: null, // parent-picked Web Speech voice, null = auto
+    ttsProvider: 'browser', // 'browser' | 'openai'
+    ttsApiKey: '', // stored only in localStorage on this device
+    ttsCloudVoice: 'nova', // voice id for the chosen cloud provider
   },
   games: Object.fromEntries(GAMES.map((g) => [g.id, defaultGameRecord()])),
 };

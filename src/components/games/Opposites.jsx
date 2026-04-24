@@ -15,7 +15,7 @@ import { getGame } from '../../data/games.js';
 
 const ROUNDS_PER_SESSION = 10;
 
-export default function Opposites({ profile, totalStars, difficulty, recent, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled, voiceURI }) {
+export default function Opposites({ profile, totalStars, difficulty, recent, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled, voiceURI, cloud }) {
   const game = getGame('opposites');
 
   const { rounds, nextRecent } = useMemo(() => {
@@ -31,7 +31,7 @@ export default function Opposites({ profile, totalStars, difficulty, recent, onE
   const [celebrateRound, setCelebrateRound] = useState(false);
   const [done, setDone] = useState(false);
 
-  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI });
+  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
   const { play } = useAudio({ enabled: sfxEnabled });
   const round = rounds[index];
 

@@ -14,7 +14,7 @@ import { getGame } from '../../data/games.js';
 
 const ROUNDS_PER_SESSION = 10;
 
-export default function SoundBlending({ profile, totalStars, difficulty, recent, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled, voiceURI }) {
+export default function SoundBlending({ profile, totalStars, difficulty, recent, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled, voiceURI, cloud }) {
   const game = getGame('sound-blending');
 
   const { rounds, nextRecent } = useMemo(() => {
@@ -30,7 +30,7 @@ export default function SoundBlending({ profile, totalStars, difficulty, recent,
   const [done, setDone] = useState(false);
   const [animatedIndex, setAnimatedIndex] = useState(-1);
 
-  const { speak, speakPhonemeSequence } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI });
+  const { speak, speakPhonemeSequence } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
   const { play } = useAudio({ enabled: sfxEnabled });
 
   const round = rounds[index];
