@@ -44,6 +44,7 @@ const VOICE_WHITELIST = [
   'vGQNBgLaiM3EdZtxIiuY', // Toby   (toucan)
   'y3UNfL9XC5Bb5htg8B0q', // Ollie  (owl)
   'pPdl9cQBQq4p6mRkZy2Z', // Penny  (panda)
+  'hO2yZ8lxM3axUxL8OeKX', // Momo   (monkey)
 ];
 
 const ELEVENLABS_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
