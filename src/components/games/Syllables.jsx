@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import AudioButton from '../shared/AudioButton.jsx';
 import Celebration from '../shared/Celebration.jsx';
-import AnimalHost from '../shared/AnimalHost.jsx';
+import PromptHeader from '../shared/PromptHeader.jsx';
 import GameShell from './GameShell.jsx';
 import { SYLLABLES_ROUNDS } from '../../data/syllables.js';
 import { pickSession } from '../../data/session.js';
@@ -79,23 +79,14 @@ export default function Syllables({ profile, totalStars, difficulty, recent, onE
       onOpenSettings={onOpenSettings}
     >
       <div className="flex flex-col items-center text-center">
-        <div className="relative flex h-44 w-full items-center justify-center">
-          <div className="absolute left-2 top-0 sm:left-6">
-            <AnimalHost type="elephant" size={150} happy={celebrateRound} />
-          </div>
-          <motion.div
-            key={round.id}
-            initial={{ scale: 0.7, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 220, damping: 18 }}
-            className="flex flex-col items-center rounded-[40px] bg-white/90 px-8 py-5 shadow-card"
-          >
-            <span className="text-6xl" aria-hidden="true">{round.emoji}</span>
-            <span className="mt-2 font-letter text-3xl font-bold text-terracotta-600 sm:text-4xl">
-              {round.word}
-            </span>
-          </motion.div>
-        </div>
+        <PromptHeader animal="elephant" happy={celebrateRound} hostLabel="Ellie says...">
+          <span className="mt-1 block text-5xl sm:text-6xl" aria-hidden="true">
+            {round.emoji}
+          </span>
+          <span className="mt-2 block font-letter text-3xl font-bold text-terracotta-600 sm:text-4xl">
+            {round.word}
+          </span>
+        </PromptHeader>
 
         <div className="mt-2 flex items-center gap-4">
           <AudioButton

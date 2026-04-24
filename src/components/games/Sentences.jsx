@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import AudioButton from '../shared/AudioButton.jsx';
 import Celebration from '../shared/Celebration.jsx';
-import AnimalHost from '../shared/AnimalHost.jsx';
+import PromptHeader from '../shared/PromptHeader.jsx';
 import GameShell from './GameShell.jsx';
 import { SENTENCES_ROUNDS } from '../../data/sentences.js';
 import { pickSession } from '../../data/session.js';
@@ -15,6 +15,12 @@ import { getGame } from '../../data/games.js';
 //   - order  : tap word chips in the right order
 //   - verb   : pick the correct verb form for the given subject
 // The session picker mixes shapes; this component branches on `round.kind`.
+//
+// Wrong-answer handling: we don't advance on an incorrect pick — we play
+// the wrong SFX, say "Hmm, not quite — try again!", and bump a `wrongKey`
+// that each child mode watches to reset its local state.  That lets the
+// kid try again with a fresh board instead of being stuck on their wrong
+// pick (the old behaviour was to just play a sound and do nothing else).
 
 const ROUNDS_PER_SESSION = 10;
 
@@ -30,24 +36,30 @@ export default function Sentences({ profile, totalStars, difficulty, recent, onE
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
   const [celebrateRound, setCelebrateRound] = useState(false);
+  // Bumped every time the kid gets it wrong — child modes watch this to
+  // reset their picked/placed state so the kid can try again cleanly.
+  const [wrongKey, setWrongKey] = useState(0);
 
   const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud });
   const { play } = useAudio({ enabled: sfxEnabled });
   const round = rounds[index];
 
+  // Auto-speak the prompt when a new round arrives.  `speak` is stable
+  // across voices loading, so the effect only runs once per round.
   useEffect(() => {
     if (!round || done) return undefined;
     const t = setTimeout(() => {
       if (round.kind === 'fill') speak(`${round.before} (blank) ${round.after}`);
-      else if (round.kind === 'verb') speak(`${round.subject}.  Pick the right form of ${round.verb}.`);
+      else if (round.kind === 'verb') speak(`${round.subject}. Pick the right form of ${round.verb}.`);
       else if (round.kind === 'order') speak('Put these words in order to make a sentence.');
     }, 400);
     return () => clearTimeout(t);
-  }, [round, speak, done]);
+  }, [round, done, speak]);
 
   const advance = (correct) => {
     if (correct) {
       play('correct');
+      speak('Yes! Great sentence!');
       setScore((s) => s + 1);
       setCelebrateRound(true);
       setTimeout(() => {
@@ -57,6 +69,8 @@ export default function Sentences({ profile, totalStars, difficulty, recent, onE
       }, 1000);
     } else {
       play('wrong');
+      speak('Hmm, not quite — try again!');
+      setWrongKey((k) => k + 1);
     }
   };
 
@@ -82,25 +96,17 @@ export default function Sentences({ profile, totalStars, difficulty, recent, onE
       onOpenSettings={onOpenSettings}
     >
       <div className="flex flex-col items-center text-center">
-        <div className="relative flex h-44 w-full items-center justify-center">
-          <div className="absolute left-2 top-0 sm:left-6">
-            <AnimalHost type="giraffe" size={160} happy={celebrateRound} />
-          </div>
-          <div className="max-w-xl rounded-[40px] bg-white/90 px-6 py-5 shadow-card">
-            <p className="font-body text-sm font-bold uppercase tracking-wide text-terracotta-500">
-              Gigi says...
-            </p>
-            <p className="mt-1 font-heading text-xl font-extrabold text-terracotta-600 sm:text-2xl">
-              {round.kind === 'order'
-                ? 'Tap the words in order to build a sentence.'
-                : round.kind === 'verb'
-                ? 'Pick the right form of the verb.'
-                : 'Fill in the blank.'}
-            </p>
-          </div>
-        </div>
+        <PromptHeader animal="giraffe" mascotSize={110} happy={celebrateRound} hostLabel="Gigi says...">
+          <p className="mt-1 font-heading text-lg font-extrabold text-terracotta-600 sm:text-xl">
+            {round.kind === 'order'
+              ? 'Tap the words in order to build a sentence.'
+              : round.kind === 'verb'
+              ? 'Pick the right form of the verb.'
+              : 'Fill in the blank.'}
+          </p>
+        </PromptHeader>
 
-        <div className="mt-2 flex items-center gap-4">
+        <div className="mt-4 flex items-center gap-4">
           <AudioButton
             onPress={() => {
               play('tap');
@@ -116,9 +122,9 @@ export default function Sentences({ profile, totalStars, difficulty, recent, onE
         </div>
 
         <div className="mt-6 w-full">
-          {round.kind === 'fill' && <FillMode round={round} onAnswer={advance} speak={speak} />}
-          {round.kind === 'verb' && <VerbMode round={round} onAnswer={advance} speak={speak} />}
-          {round.kind === 'order' && <OrderMode round={round} onAnswer={advance} speak={speak} />}
+          {round.kind === 'fill' && <FillMode round={round} onAnswer={advance} speak={speak} wrongKey={wrongKey} />}
+          {round.kind === 'verb' && <VerbMode round={round} onAnswer={advance} speak={speak} wrongKey={wrongKey} />}
+          {round.kind === 'order' && <OrderMode round={round} onAnswer={advance} speak={speak} wrongKey={wrongKey} />}
         </div>
       </div>
 
@@ -132,9 +138,10 @@ export default function Sentences({ profile, totalStars, difficulty, recent, onE
   );
 }
 
-function FillMode({ round, onAnswer, speak }) {
+function FillMode({ round, onAnswer, speak, wrongKey }) {
   const [picked, setPicked] = useState(null);
-  useEffect(() => setPicked(null), [round.id]);
+  // Reset on round change OR when the kid got it wrong (wrongKey bumped).
+  useEffect(() => setPicked(null), [round.id, wrongKey]);
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -167,7 +174,7 @@ function FillMode({ round, onAnswer, speak }) {
               if (picked) return;
               setPicked(opt);
               speak?.(`${round.before} ${opt} ${round.after}`);
-              setTimeout(() => onAnswer(opt === round.answer), 400);
+              setTimeout(() => onAnswer(opt === round.answer), 500);
             }}
             whileTap={{ scale: 0.93 }}
             whileHover={{ y: -3 }}
@@ -181,9 +188,9 @@ function FillMode({ round, onAnswer, speak }) {
   );
 }
 
-function VerbMode({ round, onAnswer, speak }) {
+function VerbMode({ round, onAnswer, speak, wrongKey }) {
   const [picked, setPicked] = useState(null);
-  useEffect(() => setPicked(null), [round.id]);
+  useEffect(() => setPicked(null), [round.id, wrongKey]);
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -216,7 +223,7 @@ function VerbMode({ round, onAnswer, speak }) {
               if (picked) return;
               setPicked(opt);
               speak?.(`${round.subject} ${opt}.`);
-              setTimeout(() => onAnswer(opt === round.answer), 400);
+              setTimeout(() => onAnswer(opt === round.answer), 500);
             }}
             whileTap={{ scale: 0.93 }}
             whileHover={{ y: -3 }}
@@ -230,14 +237,16 @@ function VerbMode({ round, onAnswer, speak }) {
   );
 }
 
-function OrderMode({ round, onAnswer, speak }) {
+function OrderMode({ round, onAnswer, speak, wrongKey }) {
   const [placed, setPlaced] = useState([]);
   const [pool, setPool] = useState(() => shuffle(round.words));
 
+  // Reset on new round OR wrong answer.  The kid gets a re-shuffled pool
+  // so they can try again — not the same ordered-incorrectly board.
   useEffect(() => {
     setPlaced([]);
     setPool(shuffle(round.words));
-  }, [round.id, round.words]);
+  }, [round.id, round.words, wrongKey]);
 
   const reset = () => {
     setPlaced([]);
@@ -252,7 +261,7 @@ function OrderMode({ round, onAnswer, speak }) {
       const sentence = nextPlaced.join(' ');
       const correct = nextPlaced.every((w, idx) => w === round.words[idx]);
       speak?.(sentence);
-      setTimeout(() => onAnswer(correct), 500);
+      setTimeout(() => onAnswer(correct), 600);
     }
   };
 

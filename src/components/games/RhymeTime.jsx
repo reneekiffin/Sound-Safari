@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import AudioButton from '../shared/AudioButton.jsx';
 import Celebration from '../shared/Celebration.jsx';
-import AnimalHost from '../shared/AnimalHost.jsx';
+import PromptHeader from '../shared/PromptHeader.jsx';
 import GameShell from './GameShell.jsx';
 import { RHYME_TIME_ROUNDS } from '../../data/rhymeTime.js';
 import { pickSession, shuffleOptions } from '../../data/session.js';
@@ -89,25 +89,14 @@ export default function RhymeTime({ profile, totalStars, difficulty, recent, onE
       onOpenSettings={onOpenSettings}
     >
       <div className="flex flex-col items-center text-center">
-        <div className="relative flex h-44 w-full items-center justify-center">
-          <div className="absolute left-2 top-0 sm:left-8">
-            <AnimalHost type="parrot" size={140} happy={celebrateRound} />
-          </div>
-          <motion.div
-            key={round.prompt}
-            initial={{ rotate: -6, scale: 0.7, opacity: 0 }}
-            animate={{ rotate: 0, scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 16 }}
-            className="rounded-[40px] bg-white/90 px-8 py-5 shadow-card"
-          >
-            <p className="font-body text-sm font-bold uppercase tracking-wide text-terracotta-500">
-              Polly says...
-            </p>
-            <p className="font-display text-4xl text-terracotta-600 sm:text-5xl">
-              “{round.prompt}”
-            </p>
-          </motion.div>
-        </div>
+        <PromptHeader animal="parrot" happy={celebrateRound} hostLabel="Polly says...">
+          <p className="mt-1 font-display text-4xl text-terracotta-600 sm:text-5xl">
+            “{round.prompt}”
+          </p>
+          <p className="mt-1 font-body text-sm font-bold text-terracotta-500">
+            what rhymes?
+          </p>
+        </PromptHeader>
 
         <div className="mt-2 flex items-center gap-4">
           <AudioButton
