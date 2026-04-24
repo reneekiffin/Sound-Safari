@@ -65,27 +65,17 @@ export default function App() {
   const [endScreen, setEndScreen] = useState(null);
   const [milestone, setMilestone] = useState(null);
 
-  // Build the cloud config based on which provider the parent has
-  // activated — each provider has its own key slot in settings so
-  // switching back-and-forth doesn't lose the other's key.
-  const cloud = (() => {
-    const p = state.settings.ttsProvider;
-    if (p === 'openai' && state.settings.ttsApiKey) {
-      return {
-        provider: 'openai',
-        apiKey: state.settings.ttsApiKey,
-        voice: state.settings.ttsCloudVoice ?? 'nova',
-      };
-    }
-    if (p === 'elevenlabs' && state.settings.ttsElevenLabsKey) {
-      return {
-        provider: 'elevenlabs',
-        apiKey: state.settings.ttsElevenLabsKey,
-        voice: state.settings.ttsCloudVoice,
-      };
-    }
-    return null;
-  })();
+  // Cloud passthrough:
+  //   ttsProvider === 'server'     → null, useSpeech goes to the proxy
+  //   ttsProvider === 'elevenlabs' → BYOK, browser calls ElevenLabs direct
+  //   ttsProvider === 'browser'    → null, no key, useSpeech skips cloud
+  //     (useCloudSpeech also bails when the speaker isn't in the voice
+  //      whitelist — Web Speech handles those).
+  const cloud =
+    state.settings.ttsProvider === 'elevenlabs' &&
+    state.settings.ttsElevenLabsKey
+      ? { provider: 'elevenlabs', apiKey: state.settings.ttsElevenLabsKey }
+      : null;
 
   const { speak, voices } = useSpeech({
     enabled: state.settings.audioEnabled,

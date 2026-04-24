@@ -3,7 +3,6 @@ import Modal from '../shared/Modal.jsx';
 import Button from '../shared/Button.jsx';
 import ProgressBar from '../shared/ProgressBar.jsx';
 import { GAMES, LEVELS } from '../../data/games.js';
-import { OPENAI_VOICES, ELEVENLABS_VOICES } from '../../hooks/useCloudSpeech.js';
 
 const DIFFICULTIES = [
   { id: 'easy', label: 'Gentle' },
@@ -223,34 +222,22 @@ export default function ParentZone({
   );
 }
 
-// Voice & TTS settings — split into two tabs:
-//   - Browser voice (free, Web Speech)
-//   - Cloud voice (much more natural, needs an API key, costs ~pennies)
+// Voice & TTS settings.
+//
+// Three modes:
+//   1. Server (default)  — calls our /api/tts proxy which holds the
+//      ElevenLabs key server-side.  Nothing for parents to configure.
+//   2. ElevenLabs BYOK   — paste your own ElevenLabs key, browser
+//      talks to ElevenLabs directly.  Useful if someone wants to
+//      run the app on their own quota.
+//   3. Browser voice     — Web Speech only.  Free but robotic.
+//
+// The per-mascot voice mapping for ElevenLabs lives in
+// src/config/voices.js and is applied the same way regardless of
+// whether the request goes through the proxy or BYOK.
 function VoiceSection({ state, voices, onUpdateSettings }) {
-  const provider = state.settings.ttsProvider ?? 'browser';
-  const isCloud = provider === 'openai' || provider === 'elevenlabs';
+  const provider = state.settings.ttsProvider ?? 'server';
   const [showKey, setShowKey] = useState(false);
-
-  const providerInfo = {
-    openai: {
-      label: 'OpenAI',
-      keyField: 'ttsApiKey',
-      voices: OPENAI_VOICES,
-      defaultVoice: 'nova',
-      help: "OpenAI's gpt-4o-mini-tts.  Roughly $0.015 per 1k characters.",
-      keyHelp: 'Get a key at platform.openai.com/api-keys.',
-      placeholder: 'sk-...',
-    },
-    elevenlabs: {
-      label: 'ElevenLabs',
-      keyField: 'ttsElevenLabsKey',
-      voices: ELEVENLABS_VOICES,
-      defaultVoice: ELEVENLABS_VOICES[0].id,
-      help: "ElevenLabs eleven_flash_v2_5.  Each mascot gets its own voice automatically (Leo is deep + male, Polly is bright, Momo playful, Ellie warm + motherly, Finn spunky, etc.).  The picker below is the fallback when a mascot has no specific voice.",
-      keyHelp: 'Get a key at elevenlabs.io → profile → API Keys.',
-      placeholder: 'eleven_...',
-    },
-  };
 
   return (
     <div className="mt-4 rounded-2xl bg-white/70 p-3">
@@ -260,27 +247,38 @@ function VoiceSection({ state, voices, onUpdateSettings }) {
 
       <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
         <ProviderTab
+          label="Server voice ★"
+          sub="natural, nothing to set up"
+          active={provider === 'server'}
+          onClick={() => onUpdateSettings({ ttsProvider: 'server' })}
+          tone="jungle"
+        />
+        <ProviderTab
+          label="My own key"
+          sub="ElevenLabs BYOK"
+          active={provider === 'elevenlabs'}
+          onClick={() => onUpdateSettings({ ttsProvider: 'elevenlabs' })}
+          tone="parrot"
+        />
+        <ProviderTab
           label="Browser voice"
           sub="free, varies by device"
           active={provider === 'browser'}
           onClick={() => onUpdateSettings({ ttsProvider: 'browser' })}
           tone="terracotta"
         />
-        <ProviderTab
-          label="OpenAI"
-          sub="API key, very natural"
-          active={provider === 'openai'}
-          onClick={() => onUpdateSettings({ ttsProvider: 'openai' })}
-          tone="jungle"
-        />
-        <ProviderTab
-          label="ElevenLabs ★"
-          sub="per-mascot voices"
-          active={provider === 'elevenlabs'}
-          onClick={() => onUpdateSettings({ ttsProvider: 'elevenlabs' })}
-          tone="parrot"
-        />
       </div>
+
+      {provider === 'server' && (
+        <div className="mt-3 rounded-xl bg-jungle-400/10 p-3 font-body text-xs text-terracotta-600/90">
+          <strong className="font-extrabold text-jungle-500">
+            Using server voices.
+          </strong>{' '}
+          The six character voices (Ellie, Leo, Zara, Skippy, Penny, Sofia)
+          play through our secure server.  Other mascots use your browser's
+          built-in voice.
+        </div>
+      )}
 
       {provider === 'browser' && (
         <label className="mt-3 flex flex-col gap-1">
@@ -307,67 +305,45 @@ function VoiceSection({ state, voices, onUpdateSettings }) {
         </label>
       )}
 
-      {isCloud && (() => {
-        const info = providerInfo[provider];
-        const keyValue = state.settings[info.keyField] ?? '';
-        return (
-          <div className="mt-3 flex flex-col gap-3">
-            <label className="flex flex-col gap-1">
-              <span className="font-body text-sm font-bold text-terracotta-500">
-                {info.label} fallback voice
-              </span>
-              <select
-                value={state.settings.ttsCloudVoice ?? info.defaultVoice}
+      {provider === 'elevenlabs' && (
+        <div className="mt-3 flex flex-col gap-3">
+          <label className="flex flex-col gap-1">
+            <span className="font-body text-sm font-bold text-terracotta-500">
+              Your ElevenLabs API key
+            </span>
+            <div className="flex gap-2">
+              <input
+                type={showKey ? 'text' : 'password'}
+                value={state.settings.ttsElevenLabsKey ?? ''}
                 onChange={(e) =>
-                  onUpdateSettings({ ttsCloudVoice: e.target.value })
+                  onUpdateSettings({ ttsElevenLabsKey: e.target.value })
                 }
-                className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-base font-extrabold text-terracotta-600"
+                placeholder="eleven_..."
+                className="focus-ring flex-1 rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-body text-base text-terracotta-600"
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <button
+                type="button"
+                onClick={() => setShowKey((s) => !s)}
+                className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-sm font-extrabold text-terracotta-600"
               >
-                {info.voices.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="flex flex-col gap-1">
-              <span className="font-body text-sm font-bold text-terracotta-500">
-                {info.label} API key
-              </span>
-              <div className="flex gap-2">
-                <input
-                  type={showKey ? 'text' : 'password'}
-                  value={keyValue}
-                  onChange={(e) => onUpdateSettings({ [info.keyField]: e.target.value })}
-                  placeholder={info.placeholder}
-                  className="focus-ring flex-1 rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-body text-base text-terracotta-600"
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowKey((s) => !s)}
-                  className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-sm font-extrabold text-terracotta-600"
-                >
-                  {showKey ? 'Hide' : 'Show'}
-                </button>
-              </div>
-            </label>
-
-            <div className="rounded-xl bg-jungle-400/10 p-3 font-body text-xs text-terracotta-600/90">
-              <strong className="font-extrabold text-jungle-500">How this works.</strong>{' '}
-              {info.help}  Audio is cached on this device, so repeated phrases cost
-              nothing after the first time.  The key is stored only in this
-              browser's localStorage.
+                {showKey ? 'Hide' : 'Show'}
+              </button>
             </div>
+          </label>
 
-            <p className="font-body text-xs text-terracotta-500/80">
-              Don't have a key? {info.keyHelp}
-            </p>
+          <div className="rounded-xl bg-parrot-400/10 p-3 font-body text-xs text-terracotta-600/90">
+            <strong className="font-extrabold text-parrot-500">
+              Using your own key.
+            </strong>{' '}
+            Usage will bill to your ElevenLabs account.  The key is stored
+            only in this browser's localStorage and sent only to
+            elevenlabs.io.  Get a key at{' '}
+            <span className="font-mono">elevenlabs.io → Profile → API Keys</span>.
           </div>
-        );
-      })()}
+        </div>
+      )}
     </div>
   );
 }

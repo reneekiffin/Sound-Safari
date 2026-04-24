@@ -158,6 +158,193 @@ const PICTURE_PAIRS = [
       { word: 'tail', emoji: '🐕' },
     ],
   },
+  {
+    id: 'two-too',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'two' },
+    answer: 'two',
+    options: [
+      { word: 'two', emoji: '2️⃣' },
+      { word: 'too', emoji: '➕' },
+    ],
+  },
+  {
+    id: 'berry-bury',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'berry' },
+    answer: 'berry',
+    options: [
+      { word: 'berry', emoji: '🫐' },
+      { word: 'bury', emoji: '⛏️' },
+    ],
+  },
+  {
+    id: 'blue-blew',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'blue' },
+    answer: 'blue',
+    options: [
+      { word: 'blue', emoji: '🟦' },
+      { word: 'blew', emoji: '🌬️' },
+    ],
+  },
+  {
+    id: 'eight-ate',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'eight' },
+    answer: 'eight',
+    options: [
+      { word: 'eight', emoji: '8️⃣' },
+      { word: 'ate', emoji: '🍽️' },
+    ],
+  },
+  {
+    id: 'meat-meet',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'meat' },
+    answer: 'meat',
+    options: [
+      { word: 'meat', emoji: '🥩' },
+      { word: 'meet', emoji: '🤝' },
+    ],
+  },
+  {
+    id: 'week-weak',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'weak' },
+    answer: 'weak',
+    options: [
+      { word: 'weak', emoji: '🥀' },
+      { word: 'week', emoji: '📅' },
+    ],
+  },
+  {
+    id: 'sail-sale',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'sail' },
+    answer: 'sail',
+    options: [
+      { word: 'sail', emoji: '⛵' },
+      { word: 'sale', emoji: '🏷️' },
+    ],
+  },
+  {
+    id: 'pail-pale',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'pail' },
+    answer: 'pail',
+    options: [
+      { word: 'pail', emoji: '🪣' },
+      { word: 'pale', emoji: '😶' },
+    ],
+  },
+  {
+    id: 'peace-piece',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'piece' },
+    answer: 'piece',
+    options: [
+      { word: 'piece', emoji: '🧩' },
+      { word: 'peace', emoji: '☮️' },
+    ],
+  },
+  {
+    id: 'one-won',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'one' },
+    answer: 'one',
+    options: [
+      { word: 'one', emoji: '1️⃣' },
+      { word: 'won', emoji: '🏆' },
+    ],
+  },
+  {
+    id: 'wait-weight',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'weight' },
+    answer: 'weight',
+    options: [
+      { word: 'weight', emoji: '🏋️' },
+      { word: 'wait', emoji: '⏳' },
+    ],
+  },
+  {
+    id: 'witch-which',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'witch' },
+    answer: 'witch',
+    options: [
+      { word: 'witch', emoji: '🧙' },
+      { word: 'which', emoji: '❓' },
+    ],
+  },
+  {
+    id: 'wood-would',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'wood' },
+    answer: 'wood',
+    options: [
+      { word: 'wood', emoji: '🪵' },
+      { word: 'would', emoji: '💭' },
+    ],
+  },
+  {
+    id: 'new-knew',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'new' },
+    answer: 'new',
+    options: [
+      { word: 'new', emoji: '✨' },
+      { word: 'knew', emoji: '🧠' },
+    ],
+  },
+  {
+    id: 'hour-our',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'hour' },
+    answer: 'hour',
+    options: [
+      { word: 'hour', emoji: '⏰' },
+      { word: 'our', emoji: '👨‍👩‍👧' },
+    ],
+  },
+  {
+    id: 'role-roll',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'roll' },
+    answer: 'roll',
+    options: [
+      { word: 'roll', emoji: '🥖' },
+      { word: 'role', emoji: '🎭' },
+    ],
+  },
+  {
+    id: 'stair-stare',
+    kind: 'picture',
+    category: 'picture',
+    prompt: { word: 'stair' },
+    answer: 'stair',
+    options: [
+      { word: 'stair', emoji: '🪜' },
+      { word: 'stare', emoji: '👀' },
+    ],
+  },
 ];
 
 const SENTENCE_BLANKS = [
@@ -177,13 +364,42 @@ const SENTENCE_BLANKS = [
   { id: 'sen-right-answer', kind: 'sentence', category: 'sentence', before: 'That is the ', after: ' answer.', answer: 'right', options: ['right', 'write'] },
   { id: 'sen-flower-garden', kind: 'sentence', category: 'sentence', before: 'The ', after: ' smells sweet.', answer: 'flower', options: ['flower', 'flour'] },
   { id: 'sen-flour-cake', kind: 'sentence', category: 'sentence', before: 'We need ', after: ' for the cake.', answer: 'flour', options: ['flour', 'flower'] },
+  { id: 'sen-berry-pie', kind: 'sentence', category: 'sentence', before: 'I love ', after: ' pie.', answer: 'berry', options: ['berry', 'bury'] },
+  { id: 'sen-bury-bone', kind: 'sentence', category: 'sentence', before: 'The dog will ', after: ' the bone.', answer: 'bury', options: ['bury', 'berry'] },
+  { id: 'sen-blue-sky', kind: 'sentence', category: 'sentence', before: 'The sky is ', after: '.', answer: 'blue', options: ['blue', 'blew'] },
+  { id: 'sen-blew-candles', kind: 'sentence', category: 'sentence', before: 'She ', after: ' out the candles.', answer: 'blew', options: ['blew', 'blue'] },
+  { id: 'sen-ate-lunch', kind: 'sentence', category: 'sentence', before: 'I ', after: ' lunch at noon.', answer: 'ate', options: ['ate', 'eight'] },
+  { id: 'sen-eight-kids', kind: 'sentence', category: 'sentence', before: 'There are ', after: ' kids here.', answer: 'eight', options: ['eight', 'ate'] },
+  { id: 'sen-meat-dinner', kind: 'sentence', category: 'sentence', before: 'We had ', after: ' for dinner.', answer: 'meat', options: ['meat', 'meet'] },
+  { id: 'sen-meet-friend', kind: 'sentence', category: 'sentence', before: 'Can we ', after: ' at the park?', answer: 'meet', options: ['meet', 'meat'] },
+  { id: 'sen-weak-arm', kind: 'sentence', category: 'sentence', before: 'My arm feels ', after: '.', answer: 'weak', options: ['weak', 'week'] },
+  { id: 'sen-week-vacation', kind: 'sentence', category: 'sentence', before: 'We go on vacation next ', after: '.', answer: 'week', options: ['week', 'weak'] },
+  { id: 'sen-sail-boat', kind: 'sentence', category: 'sentence', before: 'We will ', after: ' the boat.', answer: 'sail', options: ['sail', 'sale'] },
+  { id: 'sen-sale-shop', kind: 'sentence', category: 'sentence', before: 'The shop has a big ', after: '.', answer: 'sale', options: ['sale', 'sail'] },
+  { id: 'sen-piece-cake', kind: 'sentence', category: 'sentence', before: 'Please pass me a ', after: ' of cake.', answer: 'piece', options: ['piece', 'peace'] },
+  { id: 'sen-peace-quiet', kind: 'sentence', category: 'sentence', before: 'I love the ', after: ' and quiet.', answer: 'peace', options: ['peace', 'piece'] },
+  { id: 'sen-one-apple', kind: 'sentence', category: 'sentence', before: 'I ate ', after: ' apple.', answer: 'one', options: ['one', 'won'] },
+  { id: 'sen-won-prize', kind: 'sentence', category: 'sentence', before: 'She ', after: ' the prize.', answer: 'won', options: ['won', 'one'] },
+  { id: 'sen-wait-turn', kind: 'sentence', category: 'sentence', before: 'Please ', after: ' your turn.', answer: 'wait', options: ['wait', 'weight'] },
+  { id: 'sen-weight-box', kind: 'sentence', category: 'sentence', before: 'The box has a lot of ', after: '.', answer: 'weight', options: ['weight', 'wait'] },
+  { id: 'sen-hour-ago', kind: 'sentence', category: 'sentence', before: 'He left an ', after: ' ago.', answer: 'hour', options: ['hour', 'our'] },
+  { id: 'sen-our-home', kind: 'sentence', category: 'sentence', before: 'This is ', after: ' home.', answer: 'our', options: ['our', 'hour'] },
+  { id: 'sen-knew-answer', kind: 'sentence', category: 'sentence', before: 'I ', after: ' the answer.', answer: 'knew', options: ['knew', 'new'] },
+  { id: 'sen-new-toy', kind: 'sentence', category: 'sentence', before: 'I got a ', after: ' toy.', answer: 'new', options: ['new', 'knew'] },
+  { id: 'sen-witch-hat', kind: 'sentence', category: 'sentence', before: 'The ', after: ' wore a tall hat.', answer: 'witch', options: ['witch', 'which'] },
+  { id: 'sen-which-one', kind: 'sentence', category: 'sentence', before: '', after: ' one do you want?', answer: 'Which', options: ['Which', 'Witch'] },
+  { id: 'sen-wood-fire', kind: 'sentence', category: 'sentence', before: 'We put ', after: ' on the fire.', answer: 'wood', options: ['wood', 'would'] },
+  { id: 'sen-would-love', kind: 'sentence', category: 'sentence', before: 'I ', after: ' love some help.', answer: 'would', options: ['would', 'wood'] },
+  { id: 'sen-roll-dice', kind: 'sentence', category: 'sentence', before: 'Please ', after: ' the dice.', answer: 'roll', options: ['roll', 'role'] },
+  { id: 'sen-role-play', kind: 'sentence', category: 'sentence', before: 'She has an important ', after: ' in the play.', answer: 'role', options: ['role', 'roll'] },
 ];
 
 export const HOMOPHONES_ROUNDS = {
-  // Easy: picture-only rounds
-  easy: [...PICTURE_PAIRS.slice(0, 8)],
-  // Medium: picture + easy sentences
-  medium: [...PICTURE_PAIRS.slice(5), ...SENTENCE_BLANKS.slice(0, 8)],
-  // Hard: sentence-heavy including 3-way (their/there/they're, to/too/two)
-  hard: [...SENTENCE_BLANKS, ...PICTURE_PAIRS.slice(-3)],
+  // Easy: picture rounds only — pre-readers match audio to picture.
+  easy: [...PICTURE_PAIRS.slice(0, 16)],
+  // Medium: rest of the picture pairs + gentler sentence rounds.
+  medium: [...PICTURE_PAIRS.slice(12), ...SENTENCE_BLANKS.slice(0, 20)],
+  // Hard: sentence-heavy, including 3-way choices (their/there/they're,
+  // to/too/two) and harder spelling distinctions.
+  hard: [...SENTENCE_BLANKS, ...PICTURE_PAIRS.slice(-10)],
 };

@@ -93,7 +93,12 @@ export function useSpeech({
     window.speechSynthesis.cancel();
   }, []);
 
-  const cloudEnabled = Boolean(cloud?.provider && cloud?.apiKey);
+  // Route cloud TTS through the server proxy by default (no key
+  // needed in the browser).  If a parent has pasted their own
+  // ElevenLabs key into the Parent Zone, use that directly instead.
+  const byokProvider = cloud?.provider === 'elevenlabs' && cloud?.apiKey
+    ? { provider: 'elevenlabs', apiKey: cloud.apiKey }
+    : null;
 
   const speak = useCallback(
     async (text, opts = {}) => {
@@ -110,17 +115,17 @@ export function useSpeech({
         }
       }
 
-      // Priority 2: cloud TTS if configured.
-      if (cloudEnabled) {
+      // Priority 2: cloud TTS.  Proxy by default; BYOK overrides.  The
+      // adapter itself decides whether the speaker has a voice configured
+      // — if not, it returns isFallback:true and we drop to Web Speech.
+      const effectiveSpeaker = opts.speaker ?? speaker;
+      if (effectiveSpeaker) {
         const { played, isFallback } = await speakCloud(text, {
-          provider: cloud.provider,
-          apiKey: cloud.apiKey,
-          voice: cloud.voice,
-          speaker: opts.speaker ?? speaker,
-          speed: opts.rate ?? cloud.speed ?? 1,
+          provider: byokProvider?.provider ?? 'proxy',
+          apiKey: byokProvider?.apiKey,
+          speaker: effectiveSpeaker,
         });
         if (played) return;
-        // fall through to Web Speech on error
         if (!isFallback) return;
       }
 
@@ -149,7 +154,7 @@ export function useSpeech({
         utter.onerror = () => resolve();
       });
     },
-    [enabled, cloudEnabled, cloud?.provider, cloud?.apiKey, cloud?.voice, cloud?.speed, speaker, pickVoice, pitch, rate],
+    [enabled, byokProvider?.provider, byokProvider?.apiKey, speaker, pickVoice, pitch, rate],
   );
 
   // Speak a phoneme followed by an example word.  TTS mangles bare
@@ -226,7 +231,9 @@ export function useSpeech({
     cancel,
     voices: ranked,
     allVoices: voices,
-    cloudEnabled,
+    // True when a BYOK ElevenLabs key is set.  Callers use this to
+    // show a "using your key" indicator in the Parent Zone.
+    byokActive: Boolean(byokProvider),
   };
 }
 
