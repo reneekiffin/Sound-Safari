@@ -1,10 +1,10 @@
 // Venn Diagrams (Ollie the Owl) — ages 6-10.
 //
-// Each round shows two overlapping circles with labels.  Kids place items
-// one at a time into one of three regions:
+// Each round shows two overlapping circles with labels.  Kids place
+// items one at a time into one of three regions:
 //   'left'   — only the left label applies
 //   'right'  — only the right label applies
-//   'both'   — the item belongs in the intersection (both labels apply)
+//   'both'   — the item belongs in the intersection
 //
 // Teaches set intersection, exclusion, and union in a tangible way.
 //
@@ -14,8 +14,13 @@
 //     items: [{ word, emoji, answer: 'left'|'right'|'both' }, ...],
 //   }
 //
-// The game component shows the Venn diagram visually and presents items
-// one at a time.
+// Authoring notes (carried over from the user's feedback):
+//   - The "both" region must contain items that genuinely fit both
+//     labels — not borderline cases.  Strawberries-as-sweet-AND-sour
+//     was confusing, replaced with land-and-water animals (frogs,
+//     ducks, turtles, crocodiles) which obviously belong in both.
+//   - We aim for ~3 "left only", ~3 "right only", ~2 "both" per
+//     diagram so kids see a healthy mix.
 
 const EASY = [
   {
@@ -32,16 +37,20 @@ const EASY = [
     ],
   },
   {
-    id: 'sweet-sour',
-    leftLabel: 'Sweet',
-    rightLabel: 'Sour',
+    // Replaces sweet/sour — strawberries-and-green-apples-in-both was
+    // confusing.  Land+water animals (frog, duck, turtle, crocodile)
+    // genuinely belong in both regions.
+    id: 'land-water',
+    leftLabel: 'Lives on Land',
+    rightLabel: 'Lives in Water',
     items: [
-      { word: 'honey', emoji: '🍯', answer: 'left' },
-      { word: 'lemon', emoji: '🍋', answer: 'right' },
-      { word: 'strawberry', emoji: '🍓', answer: 'both' },
-      { word: 'candy', emoji: '🍬', answer: 'left' },
-      { word: 'pickle', emoji: '🥒', answer: 'right' },
-      { word: 'green apple', emoji: '🍏', answer: 'both' },
+      { word: 'cat', emoji: '🐈', answer: 'left' },
+      { word: 'tiger', emoji: '🐅', answer: 'left' },
+      { word: 'fish', emoji: '🐟', answer: 'right' },
+      { word: 'shark', emoji: '🦈', answer: 'right' },
+      { word: 'frog', emoji: '🐸', answer: 'both' },
+      { word: 'duck', emoji: '🦆', answer: 'both' },
+      { word: 'turtle', emoji: '🐢', answer: 'both' },
     ],
   },
   {
@@ -100,6 +109,41 @@ const MEDIUM = [
       { word: 'plant', emoji: '🪴', answer: 'both' },
     ],
   },
+  {
+    // NEW — clothing per request.  "Both" = items worn year-round.
+    id: 'summer-winter-clothes',
+    leftLabel: 'Summer',
+    rightLabel: 'Winter',
+    items: [
+      { word: 'flip flops', emoji: '🩴', answer: 'left' },
+      { word: 'shorts', emoji: '🩳', answer: 'left' },
+      { word: 'sunglasses', emoji: '🕶️', answer: 'left' },
+      { word: 'coat', emoji: '🧥', answer: 'right' },
+      { word: 'mittens', emoji: '🧤', answer: 'right' },
+      { word: 'scarf', emoji: '🧣', answer: 'right' },
+      { word: 't-shirt', emoji: '👕', answer: 'both' },
+      { word: 'sneakers', emoji: '👟', answer: 'both' },
+      { word: 'jeans', emoji: '👖', answer: 'both' },
+    ],
+  },
+  {
+    // NEW — vacation per request.  "Both" = items you'd pack on
+    // either kind of trip.
+    id: 'beach-mountain',
+    leftLabel: 'Beach Trip',
+    rightLabel: 'Mountain Trip',
+    items: [
+      { word: 'shell', emoji: '🐚', answer: 'left' },
+      { word: 'wave', emoji: '🌊', answer: 'left' },
+      { word: 'flip flops', emoji: '🩴', answer: 'left' },
+      { word: 'tent', emoji: '⛺', answer: 'right' },
+      { word: 'hiking boots', emoji: '🥾', answer: 'right' },
+      { word: 'pine tree', emoji: '🌲', answer: 'right' },
+      { word: 'backpack', emoji: '🎒', answer: 'both' },
+      { word: 'camera', emoji: '📷', answer: 'both' },
+      { word: 'sunscreen', emoji: '🧴', answer: 'both' },
+    ],
+  },
 ];
 
 const HARD = [
@@ -141,6 +185,24 @@ const HARD = [
       { word: 'fish', emoji: '🐟', answer: 'right' },
       { word: 'mushroom', emoji: '🍄', answer: 'left' },
       { word: 'cat', emoji: '🐱', answer: 'right' },
+    ],
+  },
+  {
+    // NEW — items used at home AND school (book, pencil, lunchbox)
+    // make a clean intersection.
+    id: 'home-school',
+    leftLabel: 'At Home',
+    rightLabel: 'At School',
+    items: [
+      { word: 'bed', emoji: '🛏️', answer: 'left' },
+      { word: 'sofa', emoji: '🛋️', answer: 'left' },
+      { word: 'bathtub', emoji: '🛁', answer: 'left' },
+      { word: 'chalkboard', emoji: '🪧', answer: 'right' },
+      { word: 'school bus', emoji: '🚌', answer: 'right' },
+      { word: 'backpack', emoji: '🎒', answer: 'right' },
+      { word: 'book', emoji: '📚', answer: 'both' },
+      { word: 'pencil', emoji: '✏️', answer: 'both' },
+      { word: 'lunchbox', emoji: '🥪', answer: 'both' },
     ],
   },
 ];
