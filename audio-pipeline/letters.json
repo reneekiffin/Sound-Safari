@@ -1,0 +1,262 @@
+[
+  {
+    "letter": "A",
+    "letter_name_tts_input": "ay",
+    "letter_sound_tts_input": "ahh",
+    "ipa_sound": "/æ/",
+    "filename_name": "letter-a-name.mp3",
+    "filename_sound": "letter-a-sound.mp3",
+    "example_word": "apple",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "B",
+    "letter_name_tts_input": "bee",
+    "letter_sound_tts_input": "buh",
+    "ipa_sound": "/b/",
+    "filename_name": "letter-b-name.mp3",
+    "filename_sound": "letter-b-sound.mp3",
+    "example_word": "bear",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "C",
+    "letter_name_tts_input": "see",
+    "letter_sound_tts_input": "kuh",
+    "ipa_sound": "/k/",
+    "filename_name": "letter-c-name.mp3",
+    "filename_sound": "letter-c-sound.mp3",
+    "example_word": "cat",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "D",
+    "letter_name_tts_input": "dee",
+    "letter_sound_tts_input": "duh",
+    "ipa_sound": "/d/",
+    "filename_name": "letter-d-name.mp3",
+    "filename_sound": "letter-d-sound.mp3",
+    "example_word": "dog",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "E",
+    "letter_name_tts_input": "ee",
+    "letter_sound_tts_input": "ehh",
+    "ipa_sound": "/ɛ/",
+    "filename_name": "letter-e-name.mp3",
+    "filename_sound": "letter-e-sound.mp3",
+    "example_word": "egg",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "F",
+    "letter_name_tts_input": "eff",
+    "letter_sound_tts_input": "fff",
+    "ipa_sound": "/f/",
+    "filename_name": "letter-f-name.mp3",
+    "filename_sound": "letter-f-sound.mp3",
+    "example_word": "fish",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "G",
+    "letter_name_tts_input": "gee",
+    "letter_sound_tts_input": "guh",
+    "ipa_sound": "/ɡ/",
+    "filename_name": "letter-g-name.mp3",
+    "filename_sound": "letter-g-sound.mp3",
+    "example_word": "goat",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "H",
+    "letter_name_tts_input": "aitch",
+    "letter_sound_tts_input": "huh",
+    "ipa_sound": "/h/",
+    "filename_name": "letter-h-name.mp3",
+    "filename_sound": "letter-h-sound.mp3",
+    "example_word": "hat",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "I",
+    "letter_name_tts_input": "eye",
+    "letter_sound_tts_input": "ihh",
+    "ipa_sound": "/ɪ/",
+    "filename_name": "letter-i-name.mp3",
+    "filename_sound": "letter-i-sound.mp3",
+    "example_word": "igloo",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "J",
+    "letter_name_tts_input": "jay",
+    "letter_sound_tts_input": "juh",
+    "ipa_sound": "/dʒ/",
+    "filename_name": "letter-j-name.mp3",
+    "filename_sound": "letter-j-sound.mp3",
+    "example_word": "jungle",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "K",
+    "letter_name_tts_input": "kay",
+    "letter_sound_tts_input": "kuh",
+    "ipa_sound": "/k/",
+    "filename_name": "letter-k-name.mp3",
+    "filename_sound": "letter-k-sound.mp3",
+    "example_word": "kite",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "L",
+    "letter_name_tts_input": "ell",
+    "letter_sound_tts_input": "ellll",
+    "ipa_sound": "/l/",
+    "filename_name": "letter-l-name.mp3",
+    "filename_sound": "letter-l-sound.mp3",
+    "example_word": "lion",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "M",
+    "letter_name_tts_input": "em",
+    "letter_sound_tts_input": "emmm",
+    "ipa_sound": "/m/",
+    "filename_name": "letter-m-name.mp3",
+    "filename_sound": "letter-m-sound.mp3",
+    "example_word": "monkey",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "N",
+    "letter_name_tts_input": "en",
+    "letter_sound_tts_input": "ennn",
+    "ipa_sound": "/n/",
+    "filename_name": "letter-n-name.mp3",
+    "filename_sound": "letter-n-sound.mp3",
+    "example_word": "nest",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "O",
+    "letter_name_tts_input": "oh",
+    "letter_sound_tts_input": "ohh",
+    "ipa_sound": "/ɒ/",
+    "filename_name": "letter-o-name.mp3",
+    "filename_sound": "letter-o-sound.mp3",
+    "example_word": "octopus",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "P",
+    "letter_name_tts_input": "pee",
+    "letter_sound_tts_input": "puh",
+    "ipa_sound": "/p/",
+    "filename_name": "letter-p-name.mp3",
+    "filename_sound": "letter-p-sound.mp3",
+    "example_word": "panda",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "Q",
+    "letter_name_tts_input": "cue",
+    "letter_sound_tts_input": "kwuh",
+    "ipa_sound": "/kw/",
+    "filename_name": "letter-q-name.mp3",
+    "filename_sound": "letter-q-sound.mp3",
+    "example_word": "queen",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "R",
+    "letter_name_tts_input": "ar",
+    "letter_sound_tts_input": "rrrr",
+    "ipa_sound": "/ɹ/",
+    "filename_name": "letter-r-name.mp3",
+    "filename_sound": "letter-r-sound.mp3",
+    "example_word": "rabbit",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "S",
+    "letter_name_tts_input": "ess",
+    "letter_sound_tts_input": "sss",
+    "ipa_sound": "/s/",
+    "filename_name": "letter-s-name.mp3",
+    "filename_sound": "letter-s-sound.mp3",
+    "example_word": "snake",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "T",
+    "letter_name_tts_input": "tee",
+    "letter_sound_tts_input": "tuh",
+    "ipa_sound": "/t/",
+    "filename_name": "letter-t-name.mp3",
+    "filename_sound": "letter-t-sound.mp3",
+    "example_word": "tiger",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "U",
+    "letter_name_tts_input": "you",
+    "letter_sound_tts_input": "uhh",
+    "ipa_sound": "/ʌ/",
+    "filename_name": "letter-u-name.mp3",
+    "filename_sound": "letter-u-sound.mp3",
+    "example_word": "umbrella",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "V",
+    "letter_name_tts_input": "vee",
+    "letter_sound_tts_input": "vvv",
+    "ipa_sound": "/v/",
+    "filename_name": "letter-v-name.mp3",
+    "filename_sound": "letter-v-sound.mp3",
+    "example_word": "vulture",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "W",
+    "letter_name_tts_input": "double you",
+    "letter_sound_tts_input": "wuh",
+    "ipa_sound": "/w/",
+    "filename_name": "letter-w-name.mp3",
+    "filename_sound": "letter-w-sound.mp3",
+    "example_word": "water",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "X",
+    "letter_name_tts_input": "ex",
+    "letter_sound_tts_input": "ks",
+    "ipa_sound": "/ks/",
+    "filename_name": "letter-x-name.mp3",
+    "filename_sound": "letter-x-sound.mp3",
+    "example_word": "box",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "Y",
+    "letter_name_tts_input": "why",
+    "letter_sound_tts_input": "yuh",
+    "ipa_sound": "/j/",
+    "filename_name": "letter-y-name.mp3",
+    "filename_sound": "letter-y-sound.mp3",
+    "example_word": "yellow",
+    "voice": "en-US-DavisNeural"
+  },
+  {
+    "letter": "Z",
+    "letter_name_tts_input": "zee",
+    "letter_sound_tts_input": "zzz",
+    "ipa_sound": "/z/",
+    "filename_name": "letter-z-name.mp3",
+    "filename_sound": "letter-z-sound.mp3",
+    "example_word": "zebra",
+    "voice": "en-US-DavisNeural"
+  }
+]

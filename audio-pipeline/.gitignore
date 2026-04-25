@@ -1,0 +1,5 @@
+# Local Python venv created by `python -m venv .venv`
+.venv/
+__pycache__/
+*.pyc
+.python-version
