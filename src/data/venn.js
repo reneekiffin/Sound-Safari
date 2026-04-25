@@ -196,7 +196,7 @@ const HARD = [
       { word: 'dog', emoji: '🐶', answer: 'right' },
       { word: 'person', emoji: '🧑', answer: 'left' },
       { word: 'cat', emoji: '🐱', answer: 'right' },
-      { word: 'ostrich', emoji: '🦅', answer: 'left' },
+      { word: 'eagle', emoji: '🦅', answer: 'left' },
       { word: 'horse', emoji: '🐴', answer: 'right' },
     ],
   },
