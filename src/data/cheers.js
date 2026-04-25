@@ -13,21 +13,34 @@
 // thematic.
 
 export const CORRECT_CHEERS = [
+  // Per user feedback: full sentences read more naturally than one-word
+  // shouts ("you're a rock star!" vs just "rock star!"), and a bigger
+  // pool stops them feeling repetitive.
   'You did it!',
   'You go!',
-  'Yes! Amazing!',
-  'Wow, nailed it!',
-  'High five!',
-  'Brilliant!',
-  'Super star!',
-  'Way to go!',
-  'Fantastic!',
-  'Boom! Got it!',
+  'You nailed it!',
+  "You're a rock star!",
   "You're on fire!",
-  'Nice one!',
-  'Rock star!',
+  "You're a superstar!",
+  "You're so smart!",
+  'Way to go!',
+  'High five!',
+  'Brilliant work!',
+  'Amazing job!',
+  'Fantastic!',
   'Wonderful!',
   'Incredible!',
+  'Boom! Got it!',
+  'Right on!',
+  'Outstanding!',
+  'Yes! Awesome!',
+  'You make it look easy!',
+  'Nailed it again!',
+  'Keep it up!',
+  "I'm so proud of you!",
+  'Super work!',
+  "You've got this!",
+  'Champion!',
 ];
 
 export const WRONG_CHEERS = [

@@ -123,6 +123,22 @@ export default function App() {
     [recordGameSession, view.gameId],
   );
 
+  // Speak the end-of-game score in the host's own voice once the end
+  // screen appears.  The game component unmounts the moment finish()
+  // runs (its `done` flag flips and the JSX returns null), which kills
+  // any in-flight speech kicked off from inside the game.  Doing it
+  // here keeps the speaker correct and the audio playable.
+  useEffect(() => {
+    if (!endScreen) return;
+    const g = getGame(endScreen.gameId);
+    const speaker = g?.animal;
+    if (!speaker) return;
+    speak(
+      `You got ${endScreen.score} out of ${endScreen.total}!`,
+      { speaker },
+    );
+  }, [endScreen, speak]);
+
   // Fix for the "Play Again" blank screen:
   //   Previously we bounced hub -> game with a timeout, but the underlying
   //   game component retained done=true from the previous session and

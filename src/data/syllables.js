@@ -33,6 +33,32 @@ const EASY = [
   { id: 'build-rabbit', type: 'build', word: 'rabbit', emoji: '🐇', syllables: ['rab', 'bit'] },
   { id: 'build-pencil', type: 'build', word: 'pencil', emoji: '✏️', syllables: ['pen', 'cil'] },
   { id: 'build-basket', type: 'build', word: 'basket', emoji: '🧺', syllables: ['bas', 'ket'] },
+
+  // 1-syllable add-ons (clap-once words for the youngest kids).
+  { id: 'bee', type: 'count', word: 'bee', emoji: '🐝', syllables: ['bee'], count: 1 },
+  { id: 'frog', type: 'count', word: 'frog', emoji: '🐸', syllables: ['frog'], count: 1 },
+  { id: 'fish', type: 'count', word: 'fish', emoji: '🐟', syllables: ['fish'], count: 1 },
+  { id: 'star', type: 'count', word: 'star', emoji: '⭐', syllables: ['star'], count: 1 },
+  { id: 'moon', type: 'count', word: 'moon', emoji: '🌙', syllables: ['moon'], count: 1 },
+  { id: 'tree', type: 'count', word: 'tree', emoji: '🌳', syllables: ['tree'], count: 1 },
+  { id: 'cup', type: 'count', word: 'cup', emoji: '🥤', syllables: ['cup'], count: 1 },
+  { id: 'book', type: 'count', word: 'book', emoji: '📚', syllables: ['book'], count: 1 },
+  { id: 'ball', type: 'count', word: 'ball', emoji: '⚽', syllables: ['ball'], count: 1 },
+  { id: 'snake', type: 'count', word: 'snake', emoji: '🐍', syllables: ['snake'], count: 1 },
+
+  // 2-syllable extras
+  { id: 'baby', type: 'count', word: 'baby', emoji: '👶', syllables: ['ba', 'by'], count: 2 },
+  { id: 'turtle', type: 'count', word: 'turtle', emoji: '🐢', syllables: ['tur', 'tle'], count: 2 },
+  { id: 'lion', type: 'count', word: 'lion', emoji: '🦁', syllables: ['li', 'on'], count: 2 },
+  { id: 'puppy', type: 'count', word: 'puppy', emoji: '🐶', syllables: ['pup', 'py'], count: 2 },
+  { id: 'kitten', type: 'count', word: 'kitten', emoji: '🐱', syllables: ['kit', 'ten'], count: 2 },
+  { id: 'panda', type: 'count', word: 'panda', emoji: '🐼', syllables: ['pan', 'da'], count: 2 },
+  { id: 'tiger', type: 'count', word: 'tiger', emoji: '🐅', syllables: ['ti', 'ger'], count: 2 },
+  { id: 'donut', type: 'count', word: 'donut', emoji: '🍩', syllables: ['do', 'nut'], count: 2 },
+  { id: 'lemon', type: 'count', word: 'lemon', emoji: '🍋', syllables: ['le', 'mon'], count: 2 },
+  { id: 'rocket', type: 'count', word: 'rocket', emoji: '🚀', syllables: ['rock', 'et'], count: 2 },
+  { id: 'robot', type: 'count', word: 'robot', emoji: '🤖', syllables: ['ro', 'bot'], count: 2 },
+  { id: 'doctor', type: 'count', word: 'doctor', emoji: '🩺', syllables: ['doc', 'tor'], count: 2 },
 ];
 
 const MEDIUM = [

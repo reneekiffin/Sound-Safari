@@ -104,7 +104,6 @@ export default function Spanish({ profile, totalStars, difficulty, recent, onExi
   const finish = (finalScore) => {
     setDone(true);
     play('celebrate');
-    speak(`${pickFinishCheer()} ${finalScore} out of ${rounds.length}!  ¡Muy bien!`);
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
     onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };
@@ -129,11 +128,12 @@ export default function Spanish({ profile, totalStars, difficulty, recent, onExi
               {round.letter}
             </p>
           )}
+          {/* Per user request: drop the exclamation marks around the
+              Spanish word and the English meaning under it.  The main
+              prompt now shows JUST the Spanish word; the kid figures
+              out what it means by matching to the picture options. */}
           <p className={round.kind === 'letter' ? 'mt-1 font-display text-3xl text-terracotta-600 sm:text-4xl' : 'mt-1 font-display text-4xl text-terracotta-600 sm:text-5xl'}>
-            ¡{round.spanish}!
-          </p>
-          <p className="mt-1 font-body text-sm font-bold text-terracotta-500">
-            ({round.english})
+            {round.spanish}
           </p>
         </PromptHeader>
 
@@ -182,11 +182,13 @@ export default function Spanish({ profile, totalStars, difficulty, recent, onExi
                   : 'border-terracotta-200 hover:border-terracotta-300',
               ].join(' ')}
             >
+              {/* Per user request: option cards show the picture +
+                  English label so kids learn the Spanish-to-meaning
+                  mapping (the Spanish word is already on the prompt
+                  card above).  Showing the Spanish word here would
+                  make the answer just a string-match game. */}
               <span className="text-5xl sm:text-6xl" aria-hidden="true">{opt.emoji}</span>
               <span className="mt-2 font-letter text-lg font-bold text-terracotta-600">
-                {opt.word}
-              </span>
-              <span className="font-body text-xs text-terracotta-500/80">
                 {opt.english}
               </span>
             </motion.button>
