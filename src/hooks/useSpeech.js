@@ -168,32 +168,17 @@ export function useSpeech({
         await played;
         return;
       }
-      // Speak the phoneme so kids can hear it clearly enough to
-      // imitate.  Two important details:
+      // Plain text only.  Edge's standard neural voices ignore
+      // <phoneme> SSML tags inconsistently — that's why kids were
+      // hearing nothing when they tapped the speech tile or speaker.
+      // And nested <prosody> (ours inside msedge-tts's outer wrapper)
+      // can confuse the synthesiser too.
       //
-      //   1. Repeat the phoneme spelling 3x ("ffffff", "mmmmmm",
-      //      "buhbuhbuh") so the signal is long enough to be
-      //      audible — single short stops like /b/ and /t/ get
-      //      clipped by the audio playback start otherwise.  The
-      //      repeated text also serves as a fallback for voices
-      //      that silently ignore <phoneme> SSML tags.
-      //
-      //   2. Wrap in <prosody rate="-40%"> for slow, emphasised
-      //      delivery — half-speed makes the sound easy to hear and
-      //      easy for the kid to mimic.
-      //
-      //   3. Pause + sample word so kids hear the sound IN CONTEXT
-      //      ("fffff... fish.") and can map the isolated phoneme to
-      //      the word's onset.
-      const ipa = ipaForLetter(letter);
-      const stretched = phoneme.repeat(3);
-      const sound = ipa
-        ? `<prosody rate="-40%"><phoneme alphabet="ipa" ph="${ipa}">${stretched}</phoneme></prosody>`
-        : `<prosody rate="-40%">${stretched}</prosody>`;
-      const phrase = sampleWord
-        ? `${sound}... ${sampleWord}.`
-        : `${sound}.`;
-      await speak(phrase, { rate: opts.rate ?? 0.85, ...opts });
+      // What works: feed Edge the phoneme spelling as plain text
+      // ("fff", "buh", "ahh") and let the per-character voice rate
+      // in voices.js handle the slowdown.  Ellipsis = natural pause.
+      const phrase = sampleWord ? `${phoneme}... ${sampleWord}.` : `${phoneme}.`;
+      await speak(phrase, opts);
     },
     [enabled, speak],
   );

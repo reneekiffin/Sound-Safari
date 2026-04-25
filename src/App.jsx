@@ -20,6 +20,7 @@ import Spanish from './components/games/Spanish.jsx';
 import { useProgress } from './hooks/useProgress.js';
 import { useSpeech } from './hooks/useSpeech.js';
 import { useAudio } from './hooks/useAudio.js';
+import { useBackgroundMusic } from './hooks/useBackgroundMusic.js';
 import { getGame } from './data/games.js';
 
 const VIEW_HUB = 'hub';
@@ -72,6 +73,7 @@ export default function App() {
     preferredVoiceURI: state.settings.voiceURI,
   });
   const { play } = useAudio({ enabled: state.settings.sfxEnabled });
+  useBackgroundMusic({ enabled: state.settings.bgmEnabled });
 
   useEffect(() => {
     const m = nextMilestone(state.stars);

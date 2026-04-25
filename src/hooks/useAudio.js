@@ -41,7 +41,9 @@ export function useAudio({ enabled = true } = {}) {
       if (!enabled) return;
       switch (name) {
         case 'tap':
-          playTone({ freq: 520, duration: 0.08, type: 'triangle', gain: 0.15 });
+          // Per user feedback: the brief synthesised "ding" on every
+          // button press was distracting.  No-op — the rest of the
+          // SFX (correct / wrong / celebrate) still play.
           break;
         case 'correct':
           playTone({ freq: 523, duration: 0.12, type: 'triangle' });

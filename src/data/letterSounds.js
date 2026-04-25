@@ -14,7 +14,13 @@
 //   hard   — 4 options, digraphs (sh/ch/th/ng/qu) + easily-confused pairs
 
 const EASY = [
-  { letter: 'a', phoneme: 'aaa', sampleWord: 'apple', options: ['a', 'o', 'u'] },
+  // Phoneme spellings tuned for Edge TTS to read as the actual sound:
+  //   - vowels: 'ahh' / 'ehh' / 'ihh' / 'ohh' / 'uhh' (Edge reads as
+  //     vowel sound; "aaa" was getting read as "ay-ay-ay" before)
+  //   - sustained consonants: triple-letter ('mmm', 'sss', 'fff')
+  //     reads as a sustained sound on most voices
+  //   - stops: syllable form ('buh', 'tuh', 'puh') reads correctly
+  { letter: 'a', phoneme: 'ahh', sampleWord: 'apple', options: ['a', 'o', 'u'] },
   { letter: 'm', phoneme: 'mmm', sampleWord: 'monkey', options: ['m', 's', 't'] },
   { letter: 's', phoneme: 'sss', sampleWord: 'snake', options: ['s', 'f', 'm'] },
   { letter: 't', phoneme: 'tuh', sampleWord: 'tiger', options: ['t', 'b', 'd'] },
