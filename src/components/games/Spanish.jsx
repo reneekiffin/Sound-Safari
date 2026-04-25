@@ -89,7 +89,7 @@ export default function Spanish({ profile, totalStars, difficulty, recent, onExi
         setCelebrateRound(false);
         if (index + 1 >= rounds.length) finish(score + 1);
         else setIndex((i) => i + 1);
-      }, 1300);
+      }, 2000);
     } else {
       play('wrong');
       setWrongWord(opt.word);

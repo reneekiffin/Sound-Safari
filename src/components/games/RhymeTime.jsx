@@ -59,7 +59,7 @@ export default function RhymeTime({ profile, totalStars, difficulty, recent, onE
         } else {
           setIndex((i) => i + 1);
         }
-      }, 1000);
+      }, 1800);
     } else {
       play('wrong');
       setWrongWord(opt.word);

@@ -7,7 +7,7 @@ import GameShell from './GameShell.jsx';
 import { SOUND_BLENDING_ROUNDS } from '../../data/soundBlending.js';
 import { pickSession } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
-import { useSpeech, stretchPhoneme } from '../../hooks/useSpeech.js';
+import { useSpeech, stretchPhoneme, ipaForLetter } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
 import { pickCheer, pickWrongCheer, pickFinishCheer, CORRECT_CHEERS } from '../../data/cheers.js';
 
@@ -45,11 +45,23 @@ export default function SoundBlending({ profile, totalStars, difficulty, recent,
   const playSequence = async ({ includeBlend = true } = {}) => {
     if (!round) return;
 
+    // Build SSML so Edge TTS produces the actual phoneme sounds rather
+    // than reading "aaa" / "buh" as letter names ("ay ay ay" / "buh-h").
+    // Vowels get a -30% prosody so they're sustained; consonants stay
+    // brief by nature.  Falls back to plain stretchPhoneme spelling for
+    // any phoneme without an IPA mapping (e.g. multi-letter rimes).
+    const renderPhoneme = (p) => {
+      const ipa = ipaForLetter(p);
+      if (!ipa) return stretchPhoneme(p);
+      const isVowel = /^[aeiou]$/i.test(p) || /^(ai|ee|oo|oa|ou)$/i.test(p);
+      const tag = `<phoneme alphabet="ipa" ph="${ipa}">${p}</phoneme>`;
+      return isVowel ? `<prosody rate="-30%">${tag}</prosody>` : tag;
+    };
     const phonemeText = round.phonemes
-      .map((p) => stretchPhoneme(p))
-      .join(' ... ');
+      .map(renderPhoneme)
+      .join('<break time="450ms"/>');
     const fullText = includeBlend
-      ? `${phonemeText} ... ${round.answer}.`
+      ? `${phonemeText}<break time="700ms"/>${round.answer}.`
       : phonemeText;
 
     // Highlight phonemes on a timer that runs alongside the speech.
@@ -102,7 +114,7 @@ export default function SoundBlending({ profile, totalStars, difficulty, recent,
         } else {
           setIndex((i) => i + 1);
         }
-      }, 900);
+      }, 1800);
     } else {
       play('wrong');
       setWrongWord(opt.word);

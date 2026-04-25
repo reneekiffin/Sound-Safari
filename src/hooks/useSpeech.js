@@ -168,11 +168,21 @@ export function useSpeech({
         await played;
         return;
       }
-      // Send the phoneme + sample word as a single natural utterance so
-      // ElevenLabs voices deliver it with proper prosody.  No doubling
-      // (the old `phoneme.repeat(2)` made Leo say "aaaaaa, apple"); the
-      // ellipsis already cues the voice to elongate slightly.
-      const phrase = sampleWord ? `${phoneme}... ${sampleWord}.` : `${phoneme}.`;
+      // Use SSML <phoneme alphabet="ipa" ph="..."> so Edge TTS produces
+      // the actual phoneme sound (the humming /m/, the open /æ/, the
+      // stop /b/) instead of reading the letter NAME ("em", "ay",
+      // "bee").  We elongate vowels via prosody so kids hear a sustained
+      // sound; consonants stay short by nature.
+      const ipa = ipaForLetter(letter);
+      const isVowel = /^[aeiou]$/i.test(letter) || /^(ai|ee|oo|oa|ou)$/i.test(letter);
+      const sound = ipa
+        ? isVowel
+          ? `<prosody rate="-30%"><phoneme alphabet="ipa" ph="${ipa}">${letter}</phoneme></prosody>`
+          : `<phoneme alphabet="ipa" ph="${ipa}">${letter}</phoneme>`
+        : phoneme;
+      const phrase = sampleWord
+        ? `${sound}<break time="500ms"/>${sampleWord}.`
+        : `${sound}.`;
       await speak(phrase, { rate: opts.rate ?? 0.85, ...opts });
     },
     [enabled, speak],
@@ -244,4 +254,26 @@ export function stretchPhoneme(p) {
     ai: 'ay', oo: 'oo', ee: 'ee',
   };
   return MAP[p] ?? p;
+}
+
+// IPA phoneme codes per English letter / digraph.  Sent to Edge TTS via
+// SSML <phoneme alphabet="ipa" ph="..."> so the engine produces the
+// actual sound rather than the letter name.  Returns null for letters
+// without a clean IPA mapping; the caller falls back to phonetic text.
+export function ipaForLetter(letter) {
+  const MAP = {
+    // Short vowels — the typical "first sound" taught in early phonics.
+    a: 'æ', e: 'ɛ', i: 'ɪ', o: 'ɒ', u: 'ʌ',
+    // Consonants
+    b: 'b', c: 'k', d: 'd', f: 'f', g: 'ɡ',
+    h: 'h', j: 'dʒ', k: 'k', l: 'l', m: 'm',
+    n: 'n', p: 'p', r: 'ɹ', s: 's', t: 't',
+    v: 'v', w: 'w', x: 'ks', y: 'j', z: 'z',
+    // Digraphs
+    sh: 'ʃ', ch: 'tʃ', th: 'θ', ng: 'ŋ', qu: 'kw',
+    // Vowel pairs
+    ai: 'eɪ', ee: 'iː', oo: 'uː', oa: 'oʊ', ou: 'aʊ',
+    ar: 'ɑːr', or: 'ɔːr',
+  };
+  return MAP[letter] ?? null;
 }

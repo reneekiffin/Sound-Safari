@@ -67,7 +67,7 @@ export default function App() {
 
   // Speech always routes: clip → /api/tts (Edge TTS) → Web Speech.
   // No keys to configure, no provider choice in the UI.
-  const { speak, voices } = useSpeech({
+  const { speak, voices, cancel: cancelSpeech } = useSpeech({
     enabled: state.settings.audioEnabled,
     preferredVoiceURI: state.settings.voiceURI,
   });
@@ -88,10 +88,14 @@ export default function App() {
   const handleSelectGame = useCallback(
     (gameId) => {
       play('tap');
+      // Cut any in-progress speech (e.g. the on-hover greeting that's
+      // still playing).  Without this, the greeting and the game's
+      // first prompt overlap and the kid hears garbled audio.
+      cancelSpeech();
       setSessionKey((k) => k + 1); // fresh mount every time a game is entered
       setView({ name: VIEW_GAME, gameId });
     },
-    [play],
+    [play, cancelSpeech],
   );
 
   const handleHoverGame = useCallback(

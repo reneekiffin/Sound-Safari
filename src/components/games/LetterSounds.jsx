@@ -82,7 +82,7 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
         } else {
           setIndex((i) => i + 1);
         }
-      }, 1000);
+      }, 1800);
     } else {
       play('wrong');
       setWrongLetter(letter);

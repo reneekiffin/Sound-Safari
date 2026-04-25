@@ -76,7 +76,7 @@ export default function OddOneOut({ profile, totalStars, difficulty, recent, onE
         setCelebrateRound(false);
         if (index + 1 >= rounds.length) finish(score + 1);
         else setIndex((i) => i + 1);
-      }, 900);
+      }, 1800);
     } else {
       play('wrong');
       setWrongId(item.key);

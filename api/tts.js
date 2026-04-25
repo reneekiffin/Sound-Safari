@@ -34,21 +34,25 @@ import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 // because Vercel's serverless bundler can struggle with cross-directory
 // ESM imports.
 const VOICE_WHITELIST = [
-  'en-US-AndrewMultilingualNeural', // Leo    (lion)
-  'en-US-RyanMultilingualNeural',   // Momo   (monkey)
-  'en-US-AvaMultilingualNeural',    // Polly  (parrot)
-  'en-US-EmmaMultilingualNeural',   // Ellie  (elephant)
-  'en-US-BrianMultilingualNeural',  // Toby   (toucan)
-  'en-US-AshleyNeural',             // Finn   (frog)
-  'en-US-JennyNeural',              // Gigi   (giraffe)
-  'en-US-AmberNeural',              // Zara   (zebra)
-  'en-US-RogerNeural',              // Ollie  (owl)
-  'en-US-AnaNeural',                // Penny  (panda) — kid voice
-  'en-US-EricNeural',               // Skippy (squirrel)
-  'es-ES-XimenaMultilingualNeural', // Sofia  (sloth) — Spanish
+  'en-US-GuyNeural',          // Leo    (lion)
+  'en-US-TonyNeural',         // Momo   (monkey)
+  'en-US-AriaNeural',         // Polly  (parrot)
+  'en-US-NancyNeural',        // Ellie  (elephant)
+  'en-US-DavisNeural',        // Toby   (toucan)
+  'en-US-ChristopherNeural',  // Finn   (frog)
+  'en-US-JennyNeural',        // Gigi   (giraffe)
+  'en-US-AshleyNeural',       // Zara   (zebra)
+  'en-US-RogerNeural',        // Ollie  (owl)
+  'en-US-MichelleNeural',     // Penny  (panda)
+  'en-US-JasonNeural',        // Skippy (squirrel)
+  'es-MX-DaliaNeural',        // Sofia  (sloth) — Spanish
 ];
 
-const MAX_TEXT_LEN = 300;
+// 600 chars instead of 300 — SSML phoneme tags add overhead (a single
+// `<phoneme alphabet="ipa" ph="æ">a</phoneme>` is ~40 chars for one
+// letter sound, and Sound Blending sends 4-5 phonemes plus the answer
+// word in one utterance).
+const MAX_TEXT_LEN = 600;
 
 // Sliding-window rate limit.  Map keyed by IP; value is timestamps
 // within the current 60-second window.  Resets per serverless instance,
