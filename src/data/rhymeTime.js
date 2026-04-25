@@ -68,23 +68,34 @@ const MEDIUM = [
 ];
 
 const HARD = [
-  { id: 'giraffe', prompt: 'giraffe', answer: 'laugh', options: [
+  // Brave-tier rhyme rounds.  Many words genuinely rhyme together
+  // (light/bite/kite/night, ocean/motion/lotion/potion), so each round
+  // here lists ALL the valid rhymes in `answers` and the game treats
+  // any of them as correct.  Reinforces that rhymes are a property
+  // of word *groups*, not single pairs.
+  { id: 'giraffe', prompt: 'giraffe', answers: ['laugh', 'graph'], options: [
     { word: 'laugh', emoji: '😂' }, { word: 'graph', emoji: '📊' }, { word: 'gift', emoji: '🎁' }, { word: 'jaw', emoji: '🦷' },
   ]},
-  { id: 'cake', prompt: 'cake', answer: 'snake', options: [
-    { word: 'snake', emoji: '🐍' }, { word: 'clock', emoji: '🕰️' }, { word: 'rake', emoji: '🍂' }, { word: 'cow', emoji: '🐄' },
+  { id: 'cake', prompt: 'cake', answers: ['snake', 'rake'], options: [
+    { word: 'snake', emoji: '🐍' }, { word: 'rake', emoji: '🍂' }, { word: 'clock', emoji: '🕰️' }, { word: 'cow', emoji: '🐄' },
   ]},
-  { id: 'knight', prompt: 'knight', answer: 'kite', options: [
-    { word: 'kite', emoji: '🪁' }, { word: 'night', emoji: '🌃' }, { word: 'knee', emoji: '🦵' }, { word: 'nose', emoji: '👃' },
+  { id: 'knight', prompt: 'knight', answers: ['kite', 'night', 'bite'], options: [
+    { word: 'kite', emoji: '🪁' }, { word: 'night', emoji: '🌃' }, { word: 'bite', emoji: '🦷' }, { word: 'knee', emoji: '🦵' },
   ]},
-  { id: 'light', prompt: 'light', answer: 'bite', options: [
-    { word: 'bite', emoji: '🦷' }, { word: 'lamp', emoji: '💡' }, { word: 'kite', emoji: '🪁' }, { word: 'leaf', emoji: '🍃' },
+  { id: 'light', prompt: 'light', answers: ['bite', 'kite', 'night'], options: [
+    { word: 'bite', emoji: '🦷' }, { word: 'kite', emoji: '🪁' }, { word: 'night', emoji: '🌃' }, { word: 'lamp', emoji: '💡' },
   ]},
-  { id: 'phone', prompt: 'phone', answer: 'bone', options: [
-    { word: 'bone', emoji: '🦴' }, { word: 'phrase', emoji: '💬' }, { word: 'stone', emoji: '🪨' }, { word: 'foam', emoji: '🫧' },
+  { id: 'phone', prompt: 'phone', answers: ['bone', 'stone', 'cone'], options: [
+    { word: 'bone', emoji: '🦴' }, { word: 'stone', emoji: '🪨' }, { word: 'cone', emoji: '🍦' }, { word: 'foam', emoji: '🫧' },
   ]},
-  { id: 'ocean', prompt: 'ocean', answer: 'lotion', options: [
-    { word: 'lotion', emoji: '🧴' }, { word: 'ozone', emoji: '🌫️' }, { word: 'onion', emoji: '🧅' }, { word: 'motion', emoji: '🏃' },
+  { id: 'ocean', prompt: 'ocean', answers: ['lotion', 'motion', 'potion'], options: [
+    { word: 'lotion', emoji: '🧴' }, { word: 'motion', emoji: '🏃' }, { word: 'potion', emoji: '🧪' }, { word: 'onion', emoji: '🧅' },
+  ]},
+  { id: 'snow', prompt: 'snow', answers: ['blow', 'glow', 'crow'], options: [
+    { word: 'blow', emoji: '🌬️' }, { word: 'glow', emoji: '💡' }, { word: 'crow', emoji: '🐦‍⬛' }, { word: 'sun', emoji: '☀️' },
+  ]},
+  { id: 'spring', prompt: 'spring', answers: ['ring', 'king', 'wing'], options: [
+    { word: 'ring', emoji: '💍' }, { word: 'king', emoji: '🤴' }, { word: 'wing', emoji: '🪶' }, { word: 'door', emoji: '🚪' },
   ]},
 ];
 

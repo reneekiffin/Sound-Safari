@@ -167,17 +167,24 @@ const MEDIUM = [
 
 const HARD = [
   {
+    // Round / Red — fixed per user feedback.  Strawberry is heart-
+    // shaped (not round) so it's "red only", and the ruler isn't red
+    // at all so it's gone.  Tomato + apple + literal red circle 🔴
+    // are unambiguously round AND red.  Ball/clock/donut cover
+    // "round only".
     id: 'round-red',
     leftLabel: 'Round',
     rightLabel: 'Red',
     items: [
       { word: 'ball', emoji: '⚽', answer: 'left' },
-      { word: 'strawberry', emoji: '🍓', answer: 'both' },
-      { word: 'tomato', emoji: '🍅', answer: 'both' },
-      { word: 'ruler', emoji: '📏', answer: 'right' },
       { word: 'clock', emoji: '🕐', answer: 'left' },
-      { word: 'stop sign', emoji: '🛑', answer: 'both' },
+      { word: 'donut', emoji: '🍩', answer: 'left' },
+      { word: 'strawberry', emoji: '🍓', answer: 'right' },
+      { word: 'heart', emoji: '❤️', answer: 'right' },
       { word: 'fire truck', emoji: '🚒', answer: 'right' },
+      { word: 'tomato', emoji: '🍅', answer: 'both' },
+      { word: 'red circle', emoji: '🔴', answer: 'both' },
+      { word: 'apple', emoji: '🍎', answer: 'both' },
     ],
   },
   {
