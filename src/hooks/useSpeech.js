@@ -168,20 +168,30 @@ export function useSpeech({
         await played;
         return;
       }
-      // Use SSML <phoneme alphabet="ipa" ph="..."> so Edge TTS produces
-      // the actual phoneme sound (the humming /m/, the open /æ/, the
-      // stop /b/) instead of reading the letter NAME ("em", "ay",
-      // "bee").  We elongate vowels via prosody so kids hear a sustained
-      // sound; consonants stay short by nature.
+      // Speak the phoneme so kids can hear it clearly enough to
+      // imitate.  Two important details:
+      //
+      //   1. Repeat the phoneme spelling 3x ("ffffff", "mmmmmm",
+      //      "buhbuhbuh") so the signal is long enough to be
+      //      audible — single short stops like /b/ and /t/ get
+      //      clipped by the audio playback start otherwise.  The
+      //      repeated text also serves as a fallback for voices
+      //      that silently ignore <phoneme> SSML tags.
+      //
+      //   2. Wrap in <prosody rate="-40%"> for slow, emphasised
+      //      delivery — half-speed makes the sound easy to hear and
+      //      easy for the kid to mimic.
+      //
+      //   3. Pause + sample word so kids hear the sound IN CONTEXT
+      //      ("fffff... fish.") and can map the isolated phoneme to
+      //      the word's onset.
       const ipa = ipaForLetter(letter);
-      const isVowel = /^[aeiou]$/i.test(letter) || /^(ai|ee|oo|oa|ou)$/i.test(letter);
+      const stretched = phoneme.repeat(3);
       const sound = ipa
-        ? isVowel
-          ? `<prosody rate="-30%"><phoneme alphabet="ipa" ph="${ipa}">${letter}</phoneme></prosody>`
-          : `<phoneme alphabet="ipa" ph="${ipa}">${letter}</phoneme>`
-        : phoneme;
+        ? `<prosody rate="-40%"><phoneme alphabet="ipa" ph="${ipa}">${stretched}</phoneme></prosody>`
+        : `<prosody rate="-40%">${stretched}</prosody>`;
       const phrase = sampleWord
-        ? `${sound}<break time="500ms"/>${sampleWord}.`
+        ? `${sound}... ${sampleWord}.`
         : `${sound}.`;
       await speak(phrase, { rate: opts.rate ?? 0.85, ...opts });
     },
