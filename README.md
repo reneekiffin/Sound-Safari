@@ -66,63 +66,50 @@ Add more rounds to any game by editing the matching file in `src/data/`
 
 ## Audio / voice architecture
 
-Sound Safari uses ElevenLabs for its five voiced characters — Ellie the
-Elephant, Leo the Lion, Polly the Parrot, Zara the Zebra, and Sofia
-the Sloth (Spanish host, currently sharing Polly's voice).  Every
-other mascot and any feedback line without a registered voice falls
-through to the browser's Web Speech API.  Other characters can be added
-by pasting a voice ID into `src/config/voices.js`.
+Sound Safari speaks every mascot through Microsoft's Edge neural
+voices via the `msedge-tts` package (free, no API key, no quota).
+Every game host has a distinct voice configured in
+`src/config/voices.js`.
 
 ### How the server proxy works
 
 ```
-Browser  ──POST /api/tts──▶  Vercel serverless function  ──▶  ElevenLabs
+Browser  ──POST /api/tts──▶  Vercel serverless function  ──▶  Microsoft Edge TTS
 { text,                      · POST-only, 405 otherwise                  returns
   voiceId,                   · validates text (≤300 char) + voiceId       audio/mpeg
-  settings }                 · 20 req/min/IP rate limit
-                             · holds ELEVENLABS_API_KEY
-                               (server-side env var, never in bundle)
+  settings }                 · 60 req/min/IP rate limit
+                             · no API key needed — Edge TTS is free
 ```
 
-- The key lives **only** in Vercel's env (`ELEVENLABS_API_KEY`).  It is
-  never prefixed with `VITE_` and never exposed to the browser.
-- Voice IDs are whitelisted in `src/config/voices.js` — the server
-  imports the same whitelist, so requests for arbitrary premium voices
-  are rejected before they hit the provider.
+- **No keys** to manage.  The Read-Aloud endpoint is unauthenticated.
+- Voice names are whitelisted in `src/config/voices.js` — the server
+  duplicates the list (Vercel quirk) so requests for arbitrary voices
+  off Microsoft's roster are rejected.
 - Responses use `Cache-Control: public, max-age=31536000, immutable`.
-  Same `(voiceId, text)` → same audio, so repeat phrases hit the
-  browser / Vercel edge cache and don't cost another call.
+  Same `(voiceId, text, settings)` → same audio, so repeat phrases hit
+  the browser / Vercel edge cache for free.
 
-### Setting a voice ID
+### Voices
 
-Each of the six characters has a `voiceId: '..._PLACEHOLDER'` in
-`src/config/voices.js`.  To go live:
+Each of the 12 mascots maps to a Microsoft neural voice in
+`src/config/voices.js` with appropriate `rate` / `pitch` settings
+tuned to the character.  To swap a voice, change the `voiceId` value
+and add the new name to the whitelist in `api/tts.js`.
 
-1. Open ElevenLabs → Voice Library → preview and add six voices.
-2. VoiceLab → click a voice → **Copy Voice ID** (looks like
-   `21m00Tcm4TlvDq8ikWAM`).
-3. Paste it over the `*_PLACEHOLDER` in `src/config/voices.js`.
-4. Push to GitHub — Vercel auto-redeploys.
-
-Voices that still hold a `_PLACEHOLDER` skip the proxy entirely and go
-straight to Web Speech, so the app never breaks while you're
-configuring.
-
-### Spending cap
-
-Set a hard cap at **elevenlabs.io → Dashboard → Usage**.  The
-rate-limiter in `api/tts.js` is abuse-prevention only (it resets
-per serverless instance); the spending cap is the real safety net.
+Voices currently in use include `en-US-AndrewMultilingualNeural`
+(Leo), `en-US-AvaMultilingualNeural` (Polly), `en-US-AnaNeural`
+(Penny — Microsoft's "Cute" kid voice), `es-ES-XimenaMultilingualNeural`
+(Sofia for Spanish), and others.
 
 ### Three TTS paths (in priority order)
 
 1. **Recorded clip** — if a voice-over mp3 is registered via
    `registerClipBundle` in `src/hooks/useAudioClips.js`, it plays.
-2. **Cloud TTS** (ElevenLabs) — routed through the server proxy by
-   default.  Parents can flip to "My own key" in the Parent Zone to
-   call ElevenLabs directly with their own key instead.
-3. **Web Speech** — the browser's built-in voice.  Used for all
-   non-voiced mascots, and as a silent fallback if the proxy fails.
+2. **Cloud TTS** (Microsoft Edge neural) — routed through the
+   server proxy by default.  No configuration in the UI.
+3. **Web Speech** — the browser's built-in voice.  Silent fallback
+   if the proxy is unreachable (and used for any speech triggered
+   without a `speaker` prop).
 
 ### Contextual phonemes
 

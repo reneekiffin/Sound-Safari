@@ -65,22 +65,11 @@ export default function App() {
   const [endScreen, setEndScreen] = useState(null);
   const [milestone, setMilestone] = useState(null);
 
-  // Cloud passthrough:
-  //   ttsProvider === 'server'     → null, useSpeech goes to the proxy
-  //   ttsProvider === 'elevenlabs' → BYOK, browser calls ElevenLabs direct
-  //   ttsProvider === 'browser'    → null, no key, useSpeech skips cloud
-  //     (useCloudSpeech also bails when the speaker isn't in the voice
-  //      whitelist — Web Speech handles those).
-  const cloud =
-    state.settings.ttsProvider === 'elevenlabs' &&
-    state.settings.ttsElevenLabsKey
-      ? { provider: 'elevenlabs', apiKey: state.settings.ttsElevenLabsKey }
-      : null;
-
+  // Speech always routes: clip → /api/tts (Edge TTS) → Web Speech.
+  // No keys to configure, no provider choice in the UI.
   const { speak, voices } = useSpeech({
     enabled: state.settings.audioEnabled,
     preferredVoiceURI: state.settings.voiceURI,
-    cloud,
   });
   const { play } = useAudio({ enabled: state.settings.sfxEnabled });
 
@@ -166,7 +155,6 @@ export default function App() {
     audioEnabled: state.settings.audioEnabled,
     sfxEnabled: state.settings.sfxEnabled,
     voiceURI: state.settings.voiceURI,
-    cloud,
   });
 
   const ActiveGame = view.name === VIEW_GAME ? GAME_COMPONENTS[view.gameId] : null;

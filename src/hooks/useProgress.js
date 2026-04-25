@@ -20,19 +20,9 @@ const DEFAULT_STATE = {
     sfxEnabled: true,
     difficulty: 'easy', // 'easy' | 'medium' | 'hard'
     level: 'growing', // 'little' | 'growing' | 'brave' | 'big' | 'all'
-    voiceURI: null, // parent-picked Web Speech voice, null = auto
-    // TTS:
-    //   'server' (default) → the /api/tts proxy (uses the server's
-    //     ElevenLabs key; nothing leaks to the browser; nothing for
-    //     parents to configure)
-    //   'elevenlabs' → bring-your-own-key: call ElevenLabs directly
-    //     from the browser with ttsElevenLabsKey
-    //   'browser' → use the Web Speech API only (skip cloud entirely)
-    //
-    // The per-mascot voice mapping lives in src/config/voices.js and
-    // is the same regardless of which path speech takes.
-    ttsProvider: 'server',
-    ttsElevenLabsKey: '', // only read when ttsProvider === 'elevenlabs'
+    // Web Speech voice for fallback only — when the cloud proxy is
+    // unreachable or the speaker isn't in the voice config.
+    voiceURI: null,
   },
   games: Object.fromEntries(GAMES.map((g) => [g.id, defaultGameRecord()])),
 };

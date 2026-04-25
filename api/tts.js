@@ -1,66 +1,59 @@
-// Vercel serverless function: browser-facing proxy for ElevenLabs TTS.
+// Vercel serverless function: browser-facing proxy for Microsoft Edge
+// neural TTS.
+//
+// Why Edge instead of ElevenLabs:
+//   - Free.  No API key, no quota, no spending cap to manage.
+//   - Microsoft's neural voices are high quality (Aria, Jenny, Andrew,
+//     Davis, etc.) and span many languages.
+//   - msedge-tts wraps the Read-Aloud WebSocket endpoint, which is
+//     undocumented but stable enough that public packages have used
+//     it for years.  If Microsoft ever changes the protocol, we can
+//     swap providers without touching the client (the contract is
+//     just { text, voice, settings } → audio/mpeg).
 //
 // Flow:
 //   1. Browser POSTs { text, voiceId, settings } to /api/tts.
-//   2. We validate the payload, look up the voice in the whitelist, and
-//      call ElevenLabs with our server-side API key.
-//   3. We stream back the audio as audio/mpeg with long cache headers
-//      so repeat phrases come straight from the CDN edge cache.
-//
-// The API key lives ONLY in process.env.ELEVENLABS_API_KEY on the
-// server side.  It must never be prefixed with VITE_ (that would leak
-// into the browser bundle).
+//   2. We validate, look up the voice in the whitelist.
+//   3. Open a WebSocket to Microsoft's read-aloud endpoint via the
+//      msedge-tts client, stream the audio chunks, concat into a
+//      Buffer, and stream it back as audio/mpeg.
+//   4. Long cache headers so repeat phrases come straight from the
+//      browser/edge cache.
 //
 // Abuse prevention:
-//   - POST-only (405 otherwise)
-//   - Voice whitelist imported from src/config/voices.js
-//   - text must be a short (<=300 char) string
-//   - In-memory sliding-window rate limit: 20 requests / minute / IP.
-//     Note: serverless instances are ephemeral, so this limits bursts
-//     per warm instance — it's abuse-prevention, not a hard global
-//     quota.  Set a hard spending cap at ElevenLabs for real safety.
-//
-// Errors:
-//   - Never echo the API key or provider stack-traces to the client.
-//   - Generic { error: 'tts_failed' } on any provider problem.
-//   - Client drops to Web Speech on any non-2xx.
+//   - POST-only (405 otherwise).
+//   - Voice whitelist below — kids only get the configured voices,
+//     can't request arbitrary voices off Microsoft's roster.
+//   - text must be a short (<=300 char) string.
+//   - In-memory rate limit: 60/min/IP.
 
-// Whitelist of voice IDs the proxy will accept.
-//
-// This MUST mirror the voiceId values in src/config/voices.js.  We
-// duplicate the list here (rather than importing from src/) because
-// Vercel's serverless bundler can struggle with cross-directory ESM
-// imports; duplicating keeps the function self-contained and the deploy
-// rock-solid.  If you add or change a voice in src/config/voices.js,
-// update this array too — it's the only hand-maintained sync point.
+import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
+
+// Whitelist of Edge neural voices the proxy will render.  Keep this in
+// sync with src/config/voices.js — we duplicate (rather than import)
+// because Vercel's serverless bundler can struggle with cross-directory
+// ESM imports.
 const VOICE_WHITELIST = [
-  'kHbsDwAcjwdBlFpchxv4', // Ellie  (elephant)
-  '2gPFXx8pN3Avh27Dw5Ma', // Leo    (lion)
-  'PoHUWWWMHFrA8z7Q88pu', // Polly  (parrot) + Sofia (sloth) — shared voice
-  'b8gbDO0ybjX1VA89pBdX', // Zara   (zebra)
-  '9yzdeviXkFddZ4Oz8Mok', // Gigi   (giraffe)
-  'EaX6rnyDKjJx35tchi80', // Finn   (frog)
-  'XJ2fW4ybq7HouelYYGcL', // Skippy (squirrel)
-  'vGQNBgLaiM3EdZtxIiuY', // Toby   (toucan)
-  'y3UNfL9XC5Bb5htg8B0q', // Ollie  (owl)
-  'pPdl9cQBQq4p6mRkZy2Z', // Penny  (panda)
-  'hO2yZ8lxM3axUxL8OeKX', // Momo   (monkey)
+  'en-US-AndrewMultilingualNeural', // Leo    (lion)
+  'en-US-RyanMultilingualNeural',   // Momo   (monkey)
+  'en-US-AvaMultilingualNeural',    // Polly  (parrot)
+  'en-US-EmmaMultilingualNeural',   // Ellie  (elephant)
+  'en-US-BrianMultilingualNeural',  // Toby   (toucan)
+  'en-US-AshleyNeural',             // Finn   (frog)
+  'en-US-JennyNeural',              // Gigi   (giraffe)
+  'en-US-AmberNeural',              // Zara   (zebra)
+  'en-US-RogerNeural',              // Ollie  (owl)
+  'en-US-AnaNeural',                // Penny  (panda) — kid voice
+  'en-US-EricNeural',               // Skippy (squirrel)
+  'es-ES-XimenaMultilingualNeural', // Sofia  (sloth) — Spanish
 ];
 
-const ELEVENLABS_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
-// Flash v2.5: broadly compatible with every standard voice in the
-// library (multilingual_v2 sometimes 4xx's certain voices), faster on
-// short prompts, and roughly half the cost.  Multilingual is still
-// supported in this model so Spanish words from ¡Hola! still work.
-const MODEL_ID = 'eleven_flash_v2_5';
 const MAX_TEXT_LEN = 300;
 
-// Simple sliding-window rate limiter.  Map keyed by IP; value is an
-// array of request timestamps within the current window.
-// Active gameplay can fire several speak() calls in quick succession
-// (instructions, options, feedback).  20/min was tripping during real
-// sessions and silently dropping kids to Web Speech.  60/min is enough
-// for fluid play; ElevenLabs' own spending cap is the real safety net.
+// Sliding-window rate limit.  Map keyed by IP; value is timestamps
+// within the current 60-second window.  Resets per serverless instance,
+// so it's abuse-prevention not a hard global quota — fine because
+// Edge TTS is free and the only real cost is request latency.
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 60;
 const rateStore = new Map();
@@ -79,8 +72,6 @@ function rateLimited(ip) {
 }
 
 function clientIp(req) {
-  // Vercel populates x-forwarded-for with the real client IP.  Fall
-  // back to the socket address for local dev.
   const fwd = req.headers['x-forwarded-for'];
   if (typeof fwd === 'string' && fwd.length) return fwd.split(',')[0].trim();
   if (Array.isArray(fwd) && fwd.length) return fwd[0];
@@ -99,7 +90,6 @@ export default async function handler(req, res) {
   }
 
   let body = req.body;
-  // Some Vercel runtimes deliver the body as a Buffer — parse if needed.
   if (typeof body === 'string') {
     try { body = JSON.parse(body); } catch { body = null; }
   }
@@ -116,62 +106,50 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'bad_voice' });
   }
 
-  const apiKey = process.env.ELEVENLABS_API_KEY;
-  if (!apiKey) {
-    // Misconfiguration — log a generic server note, return generic error.
-    console.error('[tts] ELEVENLABS_API_KEY missing');
-    return res.status(500).json({ error: 'tts_failed' });
-  }
-
-  // Sensible defaults; caller can override per character.
-  const voiceSettings = {
-    stability: clampNum(settings?.stability, 0.5, 0, 1),
-    similarity_boost: clampNum(settings?.similarity_boost, 0.75, 0, 1),
-    style: clampNum(settings?.style, 0.2, 0, 1),
-    use_speaker_boost: Boolean(settings?.use_speaker_boost ?? true),
-  };
+  // Edge TTS prosody knobs.  msedge-tts accepts rate (-100..+100 as a
+  // percentage), pitch (-100..+100 Hz roughly), and volume.  We map
+  // the same `settings` shape the client already sends so the upgrade
+  // is invisible to game code.
+  const rate = clampPercent(settings?.rate, 0);
+  const pitch = clampPercent(settings?.pitch, 0);
+  const volume = clampPercent(settings?.volume, 0);
 
   try {
-    const elRes = await fetch(`${ELEVENLABS_URL}/${voiceId}`, {
-      method: 'POST',
-      headers: {
-        'xi-api-key': apiKey,
-        'Content-Type': 'application/json',
-        Accept: 'audio/mpeg',
-      },
-      body: JSON.stringify({
-        text: text.trim(),
-        model_id: MODEL_ID,
-        voice_settings: voiceSettings,
-      }),
+    const tts = new MsEdgeTTS();
+    await tts.setMetadata(voiceId, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+    const { audioStream } = tts.toStream(text.trim(), {
+      rate: signedPercent(rate),
+      pitch: signedPercent(pitch),
+      volume: signedPercent(volume),
     });
 
-    if (!elRes.ok) {
-      // Surface the upstream status to the client so we can diagnose
-      // (no key, no body, just the numeric status).  The voice ID in
-      // the response lets the client log which character failed.
-      const upstreamStatus = elRes.status;
-      console.error('[tts] upstream status', upstreamStatus, 'voice', voiceId);
-      return res
-        .status(502)
-        .json({ error: 'tts_failed', upstream: upstreamStatus });
-    }
+    const chunks = [];
+    await new Promise((resolve, reject) => {
+      audioStream.on('data', (chunk) => chunks.push(chunk));
+      audioStream.on('end', resolve);
+      audioStream.on('error', reject);
+    });
+    const buffer = Buffer.concat(chunks);
 
-    const buffer = Buffer.from(await elRes.arrayBuffer());
     res.setHeader('Content-Type', 'audio/mpeg');
-    // Immutable: same (voice, text) always returns the same audio, so
-    // browsers + Vercel's edge can cache forever.  Change the voiceId
-    // or text and the URL key changes too.
+    // Same (voice, text, prosody) → same audio.  Aggressive cache so
+    // repeat phrases come from the browser/edge cache.
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     return res.status(200).send(buffer);
   } catch (err) {
-    console.error('[tts] network error');
+    console.error('[tts] edge synth error');
     return res.status(502).json({ error: 'tts_failed' });
   }
 }
 
-function clampNum(value, fallback, lo, hi) {
+function clampPercent(value, fallback) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
-  return Math.max(lo, Math.min(hi, n));
+  return Math.max(-100, Math.min(100, n));
+}
+
+// msedge-tts wants rate/pitch/volume formatted like "+10%" or "-5%".
+function signedPercent(n) {
+  const sign = n >= 0 ? '+' : '';
+  return `${sign}${n}%`;
 }
