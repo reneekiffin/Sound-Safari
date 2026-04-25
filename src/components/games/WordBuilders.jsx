@@ -21,7 +21,11 @@ import {
 // initial digraphs ("__ip"), final digraphs ("du__"), blends, and vowel
 // pairs across the difficulty tiers.
 
-const ROUNDS_PER_SESSION = 10;
+// Bumped from 10 → 12 per user request ("10 is very little").  The
+// session picker also shuffles the pool every session so successive
+// plays serve genuinely different content from the now-much-larger
+// word bank in data/wordBuilders.js.
+const ROUNDS_PER_SESSION = 12;
 
 export default function WordBuilders({ profile, totalStars, difficulty, recent, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled, voiceURI, cloud }) {
   const game = getGame('word-builders');

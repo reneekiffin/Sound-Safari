@@ -1,80 +1,258 @@
-// Word Builders (Penny the Panda) — ages 3-6 phonics.
+// Word Builders (Penny the Panda) — phonics fill-in.
 //
-// Kid sees a picture and a word with one letter-pair (or letter) missing,
-// then picks the right pair to complete the word.  Teaches digraphs
-// (sh/ch/th/ck), blends (bl/gr/sp), and simple vowel pairs (ee/oo/ai).
+// Kid sees a picture and a word with one letter (or letter-pair)
+// missing, then picks the right pair to complete the word.  Three
+// difficulty tiers covering the standard early-phonics progression:
+//
+//   easy   CVC vowel picks ("c_t") + simple initial digraphs ("__ip")
+//   medium final digraphs ("du_ck") + l/r/s blends ("__og", "fl__")
+//   hard   long-vowel pairs ("r_n" → rain), r-controlled ("st_r")
+//
+// Each tier has 40+ rounds so the session picker (10 per session by
+// default; bumped to 12) hands the kid genuinely different content
+// every replay rather than the same handful of words.
 //
 // Round shape:
-//   {
-//     id,         stable key for session picker
-//     category,   'digraph-start' | 'digraph-end' | 'blend' | 'vowel-pair' | 'cvc'
-//     before,     text before the blank (shown as-is)
-//     after,      text after the blank
-//     answer,     the correct pair
-//     options,    choices including the answer
-//     word,       the completed word (for audio + the completion flash)
-//     emoji,      picture on the card
-//   }
+//   { id, category, before, after, answer, options, word, emoji }
 //
-// Easy tier = simple CVC + initial digraphs; medium = final digraphs +
-// common blends; hard = vowel pairs / longer words.
+// Helpers below cut the per-round boilerplate so this file stays
+// readable as it grows.
 
-const EASY_INITIAL_DIGRAPHS = [
-  { id: 'ship', category: 'digraph-start', before: '', after: 'ip', answer: 'sh', options: ['sh', 'ch', 'th'], word: 'ship', emoji: '🚢' },
-  { id: 'sheep', category: 'digraph-start', before: '', after: 'eep', answer: 'sh', options: ['sh', 'ch', 'th'], word: 'sheep', emoji: '🐑' },
-  { id: 'cheese', category: 'digraph-start', before: '', after: 'eese', answer: 'ch', options: ['ch', 'sh', 'th'], word: 'cheese', emoji: '🧀' },
-  { id: 'chair', category: 'digraph-start', before: '', after: 'air', answer: 'ch', options: ['ch', 'sh', 'cl'], word: 'chair', emoji: '🪑' },
-  { id: 'three', category: 'digraph-start', before: '', after: 'ree', answer: 'th', options: ['th', 'tr', 'sh'], word: 'three', emoji: '3️⃣' },
-  { id: 'shoe', category: 'digraph-start', before: '', after: 'oe', answer: 'sh', options: ['sh', 'sn', 'ch'], word: 'shoe', emoji: '👟' },
-];
+// Build a CVC vowel-pick: c_t with vowel options.  Always 3 distractors
+// so the picker has meaningful choices.  `withDistractors` shuffles
+// every session via session.js so order doesn't get memorised.
+const cvc = (id, before, after, answer, options, word, emoji) => ({
+  id, category: 'cvc', before, after, answer, options, word, emoji,
+});
+const dig = (id, before, after, answer, options, word, emoji, kind = 'digraph-start') => ({
+  id, category: kind, before, after, answer, options, word, emoji,
+});
+const blend = (id, before, after, answer, options, word, emoji) => ({
+  id, category: 'blend', before, after, answer, options, word, emoji,
+});
+const vp = (id, before, after, answer, options, word, emoji) => ({
+  id, category: 'vowel-pair', before, after, answer, options, word, emoji,
+});
+const rcontrol = (id, before, after, answer, options, word, emoji) => ({
+  id, category: 'r-control', before, after, answer, options, word, emoji,
+});
+
+const VOWELS_3 = ['a', 'e', 'i', 'o', 'u'];
+
+// Each helper takes (id, before, after, answer, options, word, emoji).
+// Picking 3 distractors from VOWELS_3 \ answer keeps option counts tidy.
+function vowelOpts(answer) {
+  const others = VOWELS_3.filter((v) => v !== answer);
+  return [answer, ...others.slice(0, 2)];
+}
 
 const EASY_CVC = [
-  // Classic "pick the vowel" CVC rounds — brilliant for 3-4 year olds.
-  { id: 'cat', category: 'cvc', before: 'c', after: 't', answer: 'a', options: ['a', 'i', 'o'], word: 'cat', emoji: '🐈' },
-  { id: 'dog', category: 'cvc', before: 'd', after: 'g', answer: 'o', options: ['o', 'a', 'u'], word: 'dog', emoji: '🐕' },
-  { id: 'sun', category: 'cvc', before: 's', after: 'n', answer: 'u', options: ['u', 'a', 'i'], word: 'sun', emoji: '☀️' },
-  { id: 'pig', category: 'cvc', before: 'p', after: 'g', answer: 'i', options: ['i', 'a', 'o'], word: 'pig', emoji: '🐖' },
-  { id: 'bed', category: 'cvc', before: 'b', after: 'd', answer: 'e', options: ['e', 'a', 'i'], word: 'bed', emoji: '🛏️' },
-  { id: 'bat', category: 'cvc', before: 'b', after: 't', answer: 'a', options: ['a', 'e', 'u'], word: 'bat', emoji: '🦇' },
-  { id: 'hat', category: 'cvc', before: 'h', after: 't', answer: 'a', options: ['a', 'i', 'u'], word: 'hat', emoji: '🎩' },
-  { id: 'fox', category: 'cvc', before: 'f', after: 'x', answer: 'o', options: ['o', 'a', 'i'], word: 'fox', emoji: '🦊' },
-  { id: 'bus', category: 'cvc', before: 'b', after: 's', answer: 'u', options: ['u', 'o', 'a'], word: 'bus', emoji: '🚌' },
-  { id: 'cup', category: 'cvc', before: 'c', after: 'p', answer: 'u', options: ['u', 'a', 'o'], word: 'cup', emoji: '🥤' },
+  // _at family
+  cvc('cat', 'c', 't', 'a', vowelOpts('a'), 'cat', '🐈'),
+  cvc('bat', 'b', 't', 'a', vowelOpts('a'), 'bat', '🦇'),
+  cvc('hat', 'h', 't', 'a', vowelOpts('a'), 'hat', '🎩'),
+  cvc('mat', 'm', 't', 'a', vowelOpts('a'), 'mat', '🧶'),
+  cvc('rat', 'r', 't', 'a', vowelOpts('a'), 'rat', '🐀'),
+  // _an family
+  cvc('can', 'c', 'n', 'a', vowelOpts('a'), 'can', '🥫'),
+  cvc('fan', 'f', 'n', 'a', vowelOpts('a'), 'fan', '🪭'),
+  cvc('man', 'm', 'n', 'a', vowelOpts('a'), 'man', '👨'),
+  cvc('pan', 'p', 'n', 'a', vowelOpts('a'), 'pan', '🍳'),
+  cvc('van', 'v', 'n', 'a', vowelOpts('a'), 'van', '🚐'),
+  // _ap family
+  cvc('cap', 'c', 'p', 'a', vowelOpts('a'), 'cap', '🧢'),
+  cvc('map', 'm', 'p', 'a', vowelOpts('a'), 'map', '🗺️'),
+  cvc('nap', 'n', 'p', 'a', vowelOpts('a'), 'nap', '😴'),
+  // _ag family
+  cvc('bag', 'b', 'g', 'a', vowelOpts('a'), 'bag', '👜'),
+  cvc('flag', 'fl', 'g', 'a', vowelOpts('a'), 'flag', '🚩'),
+  cvc('tag', 't', 'g', 'a', vowelOpts('a'), 'tag', '🏷️'),
+  // short e
+  cvc('bed', 'b', 'd', 'e', vowelOpts('e'), 'bed', '🛏️'),
+  cvc('red', 'r', 'd', 'e', vowelOpts('e'), 'red', '🟥'),
+  cvc('hen', 'h', 'n', 'e', vowelOpts('e'), 'hen', '🐔'),
+  cvc('pen', 'p', 'n', 'e', vowelOpts('e'), 'pen', '🖊️'),
+  cvc('ten', 't', 'n', 'e', vowelOpts('e'), 'ten', '🔟'),
+  cvc('jet', 'j', 't', 'e', vowelOpts('e'), 'jet', '✈️'),
+  cvc('net', 'n', 't', 'e', vowelOpts('e'), 'net', '🥅'),
+  cvc('vet', 'v', 't', 'e', vowelOpts('e'), 'vet', '🥼'),
+  cvc('egg', '', 'gg', 'e', vowelOpts('e'), 'egg', '🥚'),
+  cvc('leg', 'l', 'g', 'e', vowelOpts('e'), 'leg', '🦵'),
+  // short i
+  cvc('pig', 'p', 'g', 'i', vowelOpts('i'), 'pig', '🐖'),
+  cvc('big', 'b', 'g', 'i', vowelOpts('i'), 'big', '🐘'),
+  cvc('wig', 'w', 'g', 'i', vowelOpts('i'), 'wig', '👱'),
+  cvc('pin', 'p', 'n', 'i', vowelOpts('i'), 'pin', '📌'),
+  cvc('lip', 'l', 'p', 'i', vowelOpts('i'), 'lip', '👄'),
+  cvc('zip', 'z', 'p', 'i', vowelOpts('i'), 'zip', '🤐'),
+  cvc('hit', 'h', 't', 'i', vowelOpts('i'), 'hit', '👊'),
+  cvc('sit', 's', 't', 'i', vowelOpts('i'), 'sit', '🪑'),
+  cvc('bib', 'b', 'b', 'i', vowelOpts('i'), 'bib', '👶'),
+  // short o
+  cvc('dog', 'd', 'g', 'o', vowelOpts('o'), 'dog', '🐕'),
+  cvc('frog', 'fr', 'g', 'o', vowelOpts('o'), 'frog', '🐸'),
+  cvc('log', 'l', 'g', 'o', vowelOpts('o'), 'log', '🪵'),
+  cvc('hot', 'h', 't', 'o', vowelOpts('o'), 'hot', '🔥'),
+  cvc('pot', 'p', 't', 'o', vowelOpts('o'), 'pot', '🍲'),
+  cvc('top', 't', 'p', 'o', vowelOpts('o'), 'top', '🔝'),
+  cvc('mop', 'm', 'p', 'o', vowelOpts('o'), 'mop', '🧹'),
+  cvc('hop', 'h', 'p', 'o', vowelOpts('o'), 'hop', '🐰'),
+  cvc('box', 'b', 'x', 'o', vowelOpts('o'), 'box', '📦'),
+  cvc('fox', 'f', 'x', 'o', vowelOpts('o'), 'fox', '🦊'),
+  // short u
+  cvc('sun', 's', 'n', 'u', vowelOpts('u'), 'sun', '☀️'),
+  cvc('bun', 'b', 'n', 'u', vowelOpts('u'), 'bun', '🍞'),
+  cvc('run', 'r', 'n', 'u', vowelOpts('u'), 'run', '🏃'),
+  cvc('cup', 'c', 'p', 'u', vowelOpts('u'), 'cup', '🥤'),
+  cvc('pup', 'p', 'p', 'u', vowelOpts('u'), 'pup', '🐶'),
+  cvc('bug', 'b', 'g', 'u', vowelOpts('u'), 'bug', '🐛'),
+  cvc('hug', 'h', 'g', 'u', vowelOpts('u'), 'hug', '🤗'),
+  cvc('mug', 'm', 'g', 'u', vowelOpts('u'), 'mug', '☕'),
+  cvc('jug', 'j', 'g', 'u', vowelOpts('u'), 'jug', '🫗'),
+  cvc('nut', 'n', 't', 'u', vowelOpts('u'), 'nut', '🥜'),
+  cvc('cut', 'c', 't', 'u', vowelOpts('u'), 'cut', '✂️'),
+  cvc('hut', 'h', 't', 'u', vowelOpts('u'), 'hut', '🛖'),
+  cvc('bus', 'b', 's', 'u', vowelOpts('u'), 'bus', '🚌'),
+];
+
+const EASY_INITIAL_DIGRAPHS = [
+  dig('ship', '', 'ip', 'sh', ['sh', 'ch', 'th'], 'ship', '🚢'),
+  dig('sheep', '', 'eep', 'sh', ['sh', 'ch', 'th'], 'sheep', '🐑'),
+  dig('shoe', '', 'oe', 'sh', ['sh', 'sn', 'ch'], 'shoe', '👟'),
+  dig('shop', '', 'op', 'sh', ['sh', 'ch', 'sn'], 'shop', '🛍️'),
+  dig('shark', '', 'ark', 'sh', ['sh', 'ch', 'st'], 'shark', '🦈'),
+  dig('cheese', '', 'eese', 'ch', ['ch', 'sh', 'th'], 'cheese', '🧀'),
+  dig('chair', '', 'air', 'ch', ['ch', 'sh', 'cl'], 'chair', '🪑'),
+  dig('chick', '', 'ick', 'ch', ['ch', 'sh', 'th'], 'chick', '🐤'),
+  dig('cherry', '', 'erry', 'ch', ['ch', 'sh', 'th'], 'cherry', '🍒'),
+  dig('three', '', 'ree', 'th', ['th', 'tr', 'sh'], 'three', '3️⃣'),
+  dig('thumb', '', 'umb', 'th', ['th', 'sh', 'ch'], 'thumb', '👍'),
+  dig('whale', '', 'ale', 'wh', ['wh', 'sh', 'ch'], 'whale', '🐋'),
 ];
 
 const MEDIUM_FINAL_DIGRAPHS = [
-  { id: 'duck', category: 'digraph-end', before: 'du', after: '', answer: 'ck', options: ['ck', 'sh', 'th'], word: 'duck', emoji: '🦆' },
-  { id: 'sock', category: 'digraph-end', before: 'so', after: '', answer: 'ck', options: ['ck', 'sh', 'st'], word: 'sock', emoji: '🧦' },
-  { id: 'ring', category: 'digraph-end', before: 'ri', after: '', answer: 'ng', options: ['ng', 'nk', 'mp'], word: 'ring', emoji: '💍' },
-  { id: 'king', category: 'digraph-end', before: 'ki', after: '', answer: 'ng', options: ['ng', 'nk', 'gh'], word: 'king', emoji: '🤴' },
-  { id: 'fish', category: 'digraph-end', before: 'fi', after: '', answer: 'sh', options: ['sh', 'ch', 'th'], word: 'fish', emoji: '🐟' },
-  { id: 'bath', category: 'digraph-end', before: 'ba', after: '', answer: 'th', options: ['th', 'sh', 'ch'], word: 'bath', emoji: '🛁' },
+  // final ck
+  dig('duck', 'du', '', 'ck', ['ck', 'sh', 'th'], 'duck', '🦆', 'digraph-end'),
+  dig('sock', 'so', '', 'ck', ['ck', 'sh', 'st'], 'sock', '🧦', 'digraph-end'),
+  dig('rock', 'ro', '', 'ck', ['ck', 'st', 'th'], 'rock', '🪨', 'digraph-end'),
+  dig('lock', 'lo', '', 'ck', ['ck', 'sh', 'th'], 'lock', '🔒', 'digraph-end'),
+  dig('clock', 'clo', '', 'ck', ['ck', 'sh', 'st'], 'clock', '🕰️', 'digraph-end'),
+  dig('truck', 'tru', '', 'ck', ['ck', 'sh', 'st'], 'truck', '🚚', 'digraph-end'),
+  dig('brick', 'bri', '', 'ck', ['ck', 'sh', 'th'], 'brick', '🧱', 'digraph-end'),
+  dig('kick', 'ki', '', 'ck', ['ck', 'sh', 'st'], 'kick', '🦵', 'digraph-end'),
+  // final ng
+  dig('ring', 'ri', '', 'ng', ['ng', 'nk', 'mp'], 'ring', '💍', 'digraph-end'),
+  dig('king', 'ki', '', 'ng', ['ng', 'nk', 'gh'], 'king', '🤴', 'digraph-end'),
+  dig('sing', 'si', '', 'ng', ['ng', 'nk', 'mp'], 'sing', '🎤', 'digraph-end'),
+  dig('wing', 'wi', '', 'ng', ['ng', 'nk', 'mp'], 'wing', '🪶', 'digraph-end'),
+  dig('swing', 'swi', '', 'ng', ['ng', 'nk', 'th'], 'swing', '🎢', 'digraph-end'),
+  dig('long', 'lo', '', 'ng', ['ng', 'nk', 'mp'], 'long', '📏', 'digraph-end'),
+  // final sh
+  dig('fish', 'fi', '', 'sh', ['sh', 'ch', 'th'], 'fish', '🐟', 'digraph-end'),
+  dig('dish', 'di', '', 'sh', ['sh', 'ch', 'th'], 'dish', '🍽️', 'digraph-end'),
+  dig('wish', 'wi', '', 'sh', ['sh', 'ch', 'th'], 'wish', '⭐', 'digraph-end'),
+  dig('brush', 'bru', '', 'sh', ['sh', 'ch', 'th'], 'brush', '🪥', 'digraph-end'),
+  // final th
+  dig('bath', 'ba', '', 'th', ['th', 'sh', 'ch'], 'bath', '🛁', 'digraph-end'),
+  dig('moth', 'mo', '', 'th', ['th', 'sh', 'ch'], 'moth', '🦋', 'digraph-end'),
+  dig('tooth', 'too', '', 'th', ['th', 'sh', 'ck'], 'tooth', '🦷', 'digraph-end'),
 ];
 
 const MEDIUM_BLENDS = [
-  { id: 'frog', category: 'blend', before: '', after: 'og', answer: 'fr', options: ['fr', 'cr', 'tr'], word: 'frog', emoji: '🐸' },
-  { id: 'grape', category: 'blend', before: '', after: 'ape', answer: 'gr', options: ['gr', 'tr', 'cr'], word: 'grape', emoji: '🍇' },
-  { id: 'crab', category: 'blend', before: '', after: 'ab', answer: 'cr', options: ['cr', 'gr', 'dr'], word: 'crab', emoji: '🦀' },
-  { id: 'tree', category: 'blend', before: '', after: 'ee', answer: 'tr', options: ['tr', 'fr', 'th'], word: 'tree', emoji: '🌳' },
-  { id: 'star', category: 'blend', before: '', after: 'ar', answer: 'st', options: ['st', 'sp', 'sn'], word: 'star', emoji: '⭐' },
-  { id: 'snail', category: 'blend', before: '', after: 'ail', answer: 'sn', options: ['sn', 'sl', 'st'], word: 'snail', emoji: '🐌' },
-  { id: 'flag', category: 'blend', before: '', after: 'ag', answer: 'fl', options: ['fl', 'gl', 'pl'], word: 'flag', emoji: '🚩' },
-  { id: 'plum', category: 'blend', before: '', after: 'um', answer: 'pl', options: ['pl', 'cl', 'fl'], word: 'plum', emoji: '🫐' },
+  // l-blends
+  blend('flag-bl', '', 'ag', 'fl', ['fl', 'gl', 'pl'], 'flag', '🚩'),
+  blend('flat', '', 'at', 'fl', ['fl', 'gl', 'pl'], 'flat', '📃'),
+  blend('plug', '', 'ug', 'pl', ['pl', 'cl', 'fl'], 'plug', '🔌'),
+  blend('plant', '', 'ant', 'pl', ['pl', 'cl', 'gl'], 'plant', '🪴'),
+  blend('glove', '', 'ove', 'gl', ['gl', 'cl', 'sl'], 'glove', '🧤'),
+  blend('blue', '', 'ue', 'bl', ['bl', 'gl', 'cl'], 'blue', '🟦'),
+  blend('clock-bl', '', 'ock', 'cl', ['cl', 'bl', 'fl'], 'clock', '🕰️'),
+  blend('cloud-bl', '', 'oud', 'cl', ['cl', 'bl', 'pl'], 'cloud', '☁️'),
+  blend('slide', '', 'ide', 'sl', ['sl', 'sn', 'st'], 'slide', '🛝'),
+  blend('sleep', '', 'eep', 'sl', ['sl', 'sn', 'st'], 'sleep', '😴'),
+  // r-blends
+  blend('frog-bl', '', 'og', 'fr', ['fr', 'cr', 'tr'], 'frog', '🐸'),
+  blend('free', '', 'ee', 'fr', ['fr', 'tr', 'cr'], 'free', '🕊️'),
+  blend('grape', '', 'ape', 'gr', ['gr', 'tr', 'cr'], 'grape', '🍇'),
+  blend('green', '', 'een', 'gr', ['gr', 'cr', 'tr'], 'green', '🟢'),
+  blend('crab', '', 'ab', 'cr', ['cr', 'gr', 'dr'], 'crab', '🦀'),
+  blend('crown', '', 'own', 'cr', ['cr', 'gr', 'br'], 'crown', '👑'),
+  blend('drum', '', 'um', 'dr', ['dr', 'tr', 'br'], 'drum', '🥁'),
+  blend('drop', '', 'op', 'dr', ['dr', 'tr', 'br'], 'drop', '💧'),
+  blend('tree', '', 'ee', 'tr', ['tr', 'fr', 'br'], 'tree', '🌳'),
+  blend('train', '', 'ain', 'tr', ['tr', 'br', 'cr'], 'train', '🚂'),
+  blend('brick-bl', '', 'ick', 'br', ['br', 'cr', 'tr'], 'brick', '🧱'),
+  blend('bread', '', 'ead', 'br', ['br', 'cr', 'tr'], 'bread', '🍞'),
+  blend('prize', '', 'ize', 'pr', ['pr', 'br', 'tr'], 'prize', '🏆'),
+  // s-blends
+  blend('star', '', 'ar', 'st', ['st', 'sp', 'sn'], 'star', '⭐'),
+  blend('stop', '', 'op', 'st', ['st', 'sp', 'sk'], 'stop', '🛑'),
+  blend('snail', '', 'ail', 'sn', ['sn', 'sl', 'st'], 'snail', '🐌'),
+  blend('snake-bl', '', 'ake', 'sn', ['sn', 'sl', 'st'], 'snake', '🐍'),
+  blend('skip', '', 'ip', 'sk', ['sk', 'st', 'sp'], 'skip', '🏃'),
+  blend('spider', '', 'ider', 'sp', ['sp', 'st', 'sk'], 'spider', '🕷️'),
+  blend('spoon', '', 'oon', 'sp', ['sp', 'st', 'sk'], 'spoon', '🥄'),
+  blend('swim', '', 'im', 'sw', ['sw', 'st', 'sp'], 'swim', '🏊'),
+  blend('smile', '', 'ile', 'sm', ['sm', 'sl', 'sn'], 'smile', '😀'),
 ];
 
 const HARD_VOWEL_PAIRS = [
-  { id: 'rain', category: 'vowel-pair', before: 'r', after: 'n', answer: 'ai', options: ['ai', 'ay', 'ei'], word: 'rain', emoji: '🌧️' },
-  { id: 'boat', category: 'vowel-pair', before: 'b', after: 't', answer: 'oa', options: ['oa', 'ow', 'oe'], word: 'boat', emoji: '⛵' },
-  { id: 'tree', category: 'vowel-pair', before: 'tr', after: '', answer: 'ee', options: ['ee', 'ea', 'ie'], word: 'tree', emoji: '🌳' },
-  { id: 'moon', category: 'vowel-pair', before: 'm', after: 'n', answer: 'oo', options: ['oo', 'ou', 'ow'], word: 'moon', emoji: '🌙' },
-  { id: 'cloud', category: 'vowel-pair', before: 'cl', after: 'd', answer: 'ou', options: ['ou', 'ow', 'oo'], word: 'cloud', emoji: '☁️' },
-  { id: 'cake', category: 'vowel-pair', before: 'c', after: 'ke', answer: 'a', options: ['a', 'ai', 'ay'], word: 'cake', emoji: '🎂' },
-  { id: 'seed', category: 'vowel-pair', before: 's', after: 'd', answer: 'ee', options: ['ee', 'ea', 'ei'], word: 'seed', emoji: '🌱' },
-  { id: 'book', category: 'vowel-pair', before: 'b', after: 'k', answer: 'oo', options: ['oo', 'ou', 'u'], word: 'book', emoji: '📚' },
+  // ai
+  vp('rain', 'r', 'n', 'ai', ['ai', 'ay', 'ei'], 'rain', '🌧️'),
+  vp('train-vp', 'tr', 'n', 'ai', ['ai', 'ay', 'ei'], 'train', '🚂'),
+  vp('snail-vp', 'sn', 'l', 'ai', ['ai', 'ay', 'ee'], 'snail', '🐌'),
+  vp('mail', 'm', 'l', 'ai', ['ai', 'ay', 'oa'], 'mail', '📬'),
+  vp('paint', 'p', 'nt', 'ai', ['ai', 'ay', 'ee'], 'paint', '🎨'),
+  // ee
+  vp('tree-vp', 'tr', '', 'ee', ['ee', 'ea', 'ie'], 'tree', '🌳'),
+  vp('bee', 'b', '', 'ee', ['ee', 'ea', 'ai'], 'bee', '🐝'),
+  vp('sheep-vp', 'sh', 'p', 'ee', ['ee', 'ea', 'oa'], 'sheep', '🐑'),
+  vp('seed', 's', 'd', 'ee', ['ee', 'ea', 'oa'], 'seed', '🌱'),
+  vp('green-vp', 'gr', 'n', 'ee', ['ee', 'ea', 'ai'], 'green', '🟢'),
+  // ea
+  vp('leaf', 'l', 'f', 'ea', ['ea', 'ee', 'ai'], 'leaf', '🍃'),
+  vp('beach', 'b', 'ch', 'ea', ['ea', 'ee', 'oa'], 'beach', '🏖️'),
+  vp('peach', 'p', 'ch', 'ea', ['ea', 'ee', 'ai'], 'peach', '🍑'),
+  vp('eat', '', 't', 'ea', ['ea', 'ai', 'oa'], 'eat', '🍽️'),
+  vp('meat', 'm', 't', 'ea', ['ea', 'ee', 'ai'], 'meat', '🥩'),
+  // oa
+  vp('boat', 'b', 't', 'oa', ['oa', 'ow', 'oe'], 'boat', '⛵'),
+  vp('goat', 'g', 't', 'oa', ['oa', 'ow', 'oe'], 'goat', '🐐'),
+  vp('coat', 'c', 't', 'oa', ['oa', 'ow', 'oe'], 'coat', '🧥'),
+  vp('toast', 't', 'st', 'oa', ['oa', 'ow', 'au'], 'toast', '🍞'),
+  vp('soap', 's', 'p', 'oa', ['oa', 'ow', 'au'], 'soap', '🧼'),
+  // oo (long)
+  vp('moon', 'm', 'n', 'oo', ['oo', 'ou', 'ow'], 'moon', '🌙'),
+  vp('spoon-vp', 'sp', 'n', 'oo', ['oo', 'ou', 'ow'], 'spoon', '🥄'),
+  vp('boot', 'b', 't', 'oo', ['oo', 'ou', 'oa'], 'boot', '🥾'),
+  vp('pool', 'p', 'l', 'oo', ['oo', 'ou', 'oa'], 'pool', '🏊'),
+  vp('zoo', 'z', '', 'oo', ['oo', 'ou', 'oa'], 'zoo', '🦒'),
+  // ou / ow
+  vp('cloud', 'cl', 'd', 'ou', ['ou', 'ow', 'oo'], 'cloud', '☁️'),
+  vp('mouth', 'm', 'th', 'ou', ['ou', 'ow', 'oo'], 'mouth', '👄'),
+  vp('house', 'h', 'se', 'ou', ['ou', 'ow', 'oo'], 'house', '🏠'),
+  vp('mouse', 'm', 'se', 'ou', ['ou', 'ow', 'oa'], 'mouse', '🐭'),
+  vp('cow', 'c', '', 'ow', ['ow', 'oo', 'oa'], 'cow', '🐄'),
+  vp('crown-vp', 'cr', 'n', 'ow', ['ow', 'ou', 'oa'], 'crown', '👑'),
+];
+
+const HARD_R_CONTROL = [
+  rcontrol('star-rc', 'st', '', 'ar', ['ar', 'or', 'er'], 'star', '⭐'),
+  rcontrol('car', 'c', '', 'ar', ['ar', 'or', 'er'], 'car', '🚗'),
+  rcontrol('jar', 'j', '', 'ar', ['ar', 'or', 'er'], 'jar', '🫙'),
+  rcontrol('park', 'p', 'k', 'ar', ['ar', 'or', 'er'], 'park', '🏞️'),
+  rcontrol('shark-rc', 'sh', 'k', 'ar', ['ar', 'or', 'ir'], 'shark', '🦈'),
+  rcontrol('barn', 'b', 'n', 'ar', ['ar', 'or', 'er'], 'barn', '🏚️'),
+  rcontrol('fork', 'f', 'k', 'or', ['or', 'ar', 'er'], 'fork', '🍴'),
+  rcontrol('horn', 'h', 'n', 'or', ['or', 'ar', 'ur'], 'horn', '🎺'),
+  rcontrol('corn', 'c', 'n', 'or', ['or', 'ar', 'ur'], 'corn', '🌽'),
+  rcontrol('storm', 'st', 'm', 'or', ['or', 'ar', 'ur'], 'storm', '🌩️'),
+  rcontrol('bird', 'b', 'd', 'ir', ['ir', 'ur', 'er'], 'bird', '🐦'),
+  rcontrol('shirt', 'sh', 't', 'ir', ['ir', 'ur', 'er'], 'shirt', '👕'),
 ];
 
 export const WORD_BUILDERS_ROUNDS = {
-  easy: [...EASY_CVC, ...EASY_INITIAL_DIGRAPHS.slice(0, 4)],
-  medium: [...MEDIUM_FINAL_DIGRAPHS, ...MEDIUM_BLENDS, ...EASY_INITIAL_DIGRAPHS.slice(4)],
-  hard: [...HARD_VOWEL_PAIRS, ...MEDIUM_BLENDS],
+  easy: [...EASY_CVC, ...EASY_INITIAL_DIGRAPHS],
+  medium: [...MEDIUM_FINAL_DIGRAPHS, ...MEDIUM_BLENDS, ...EASY_INITIAL_DIGRAPHS.slice(0, 5)],
+  hard: [...HARD_VOWEL_PAIRS, ...HARD_R_CONTROL, ...MEDIUM_BLENDS.slice(0, 6)],
 };
