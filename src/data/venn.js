@@ -144,6 +144,25 @@ const MEDIUM = [
       { word: 'sunscreen', emoji: '🧴', answer: 'both' },
     ],
   },
+  {
+    // NEW — kitchen/bathroom split with cleaner shared items than
+    // most Venns. Soap, sponge, mirror genuinely belong in both rooms
+    // so the intersection is unambiguous for kids.
+    id: 'kitchen-bathroom',
+    leftLabel: 'Kitchen',
+    rightLabel: 'Bathroom',
+    items: [
+      { word: 'frying pan', emoji: '🍳', answer: 'left' },
+      { word: 'spoon', emoji: '🥄', answer: 'left' },
+      { word: 'plate', emoji: '🍽️', answer: 'left' },
+      { word: 'toilet', emoji: '🚽', answer: 'right' },
+      { word: 'toothbrush', emoji: '🪥', answer: 'right' },
+      { word: 'bathtub', emoji: '🛁', answer: 'right' },
+      { word: 'soap', emoji: '🧼', answer: 'both' },
+      { word: 'mirror', emoji: '🪞', answer: 'both' },
+      { word: 'sponge', emoji: '🧽', answer: 'both' },
+    ],
+  },
 ];
 
 const HARD = [
