@@ -158,6 +158,11 @@ export default function ParentZone({
               value={state.settings.sfxEnabled}
               onChange={(v) => onUpdateSettings({ sfxEnabled: v })}
             />
+            <Toggle
+              label="Background music"
+              value={state.settings.bgmEnabled}
+              onChange={(v) => onUpdateSettings({ bgmEnabled: v })}
+            />
           </div>
 
           <div className="mt-4">

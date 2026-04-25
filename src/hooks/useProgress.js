@@ -18,6 +18,10 @@ const DEFAULT_STATE = {
   settings: {
     audioEnabled: true,
     sfxEnabled: true,
+    // Soft ambient music synthesised in the browser via Web Audio.
+    // Default off so kids land in a quiet UI; parents can flip it on
+    // from the Voice/Audio section in the Parent Zone.
+    bgmEnabled: false,
     difficulty: 'easy', // 'easy' | 'medium' | 'hard'
     level: 'growing', // 'little' | 'growing' | 'brave' | 'big' | 'all'
     // Web Speech voice for fallback only — when the cloud proxy is
