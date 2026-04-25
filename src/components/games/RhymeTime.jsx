@@ -46,7 +46,12 @@ export default function RhymeTime({ profile, totalStars, difficulty, recent, onE
 
   const handlePick = (opt) => {
     if (answered || done) return;
-    if (opt.word === round.answer) {
+    // A round can have a single `answer` (easy/medium tiers) or a list
+    // of valid `answers` (brave tier where multiple words rhyme).
+    // Treat any match as correct — kids learn that rhymes are groups,
+    // not pairs.
+    const validAnswers = round.answers ?? (round.answer ? [round.answer] : []);
+    if (validAnswers.includes(opt.word)) {
       // Polly's correct-answer flow per request:
       //   1. Say the answer word ("hat")
       //   2. Pause briefly so kids hear the word in isolation
@@ -126,12 +131,18 @@ export default function RhymeTime({ profile, totalStars, difficulty, recent, onE
             round.options.length > 3 ? 'grid-cols-2' : 'grid-cols-3',
           ].join(' ')}
         >
-          {round.options.map((opt) => (
+          {round.options.map((opt) => {
+            // Highlight every valid rhyming option after the kid picks
+            // a correct one — visual reinforcement that more than one
+            // option could rhyme.
+            const validAnswers = round.answers ?? (round.answer ? [round.answer] : []);
+            const isAnswer = validAnswers.includes(opt.word);
+            return (
             <RhymeCard
               key={opt.word}
               option={opt}
               state={
-                answered && opt.word === round.answer
+                answered && isAnswer
                   ? 'correct'
                   : wrongWord === opt.word
                   ? 'wrong'
@@ -140,7 +151,8 @@ export default function RhymeTime({ profile, totalStars, difficulty, recent, onE
               onTap={() => handlePick(opt)}
               onPreview={() => speak(opt.word, { rate: 0.85 })}
             />
-          ))}
+            );
+          })}
         </div>
       </div>
 
