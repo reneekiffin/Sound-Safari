@@ -47,19 +47,28 @@ export default function RhymeTime({ profile, totalStars, difficulty, recent, onE
   const handlePick = (opt) => {
     if (answered || done) return;
     if (opt.word === round.answer) {
+      // Polly's correct-answer flow per request:
+      //   1. Say the answer word ("hat")
+      //   2. Pause briefly so kids hear the word in isolation
+      //   3. Show celebration + speak the cheer ("Boom! cat and hat rhyme!")
+      //   4. Pause so kids can read the cheer
+      //   5. Advance to the next round
       play('correct');
-      speak(`${pickCheer(CORRECT_CHEERS)} ${round.prompt} and ${opt.word} rhyme!`);
       setAnswered(true);
-      setCelebrateRound(true);
       setScore((s) => s + 1);
+      speak(opt.word, { rate: 0.9 });
       setTimeout(() => {
-        setCelebrateRound(false);
-        if (index + 1 >= rounds.length) {
-          finish(score + 1);
-        } else {
-          setIndex((i) => i + 1);
-        }
-      }, 1800);
+        setCelebrateRound(true);
+        speak(`${pickCheer(CORRECT_CHEERS)} ${round.prompt} and ${opt.word} rhyme!`);
+        setTimeout(() => {
+          setCelebrateRound(false);
+          if (index + 1 >= rounds.length) {
+            finish(score + 1);
+          } else {
+            setIndex((i) => i + 1);
+          }
+        }, 2400);
+      }, 1300);
     } else {
       play('wrong');
       setWrongWord(opt.word);

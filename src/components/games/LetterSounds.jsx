@@ -197,8 +197,10 @@ function ExampleWords({ letter, onPreview }) {
           <motion.button
             key={ex.word}
             onClick={() => onPreview(ex.word)}
-            onHoverStart={() => onPreview(ex.word)}
-            onFocus={() => onPreview(ex.word)}
+            // No onHoverStart / onFocus — on touch devices these fire
+            // alongside onClick and the resulting double speak() races
+            // cancelled the playback for the second/third chip taps.
+            // onClick alone is reliable across mouse + touch.
             aria-label={`Hear the word ${ex.word}`}
             whileTap={{ scale: 0.92 }}
             whileHover={{ y: -4, rotate: -2 }}

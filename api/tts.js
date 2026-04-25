@@ -35,16 +35,16 @@ import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 // ESM imports.
 const VOICE_WHITELIST = [
   'en-US-GuyNeural',          // Leo    (lion)
-  'en-US-TonyNeural',         // Momo   (monkey)
+  'en-US-AndrewNeural',       // Momo   (monkey)
   'en-US-AriaNeural',         // Polly  (parrot)
-  'en-US-NancyNeural',        // Ellie  (elephant)
-  'en-US-DavisNeural',        // Toby   (toucan)
+  'en-US-EmmaNeural',         // Ellie  (elephant)
+  'en-US-BrianNeural',        // Toby   (toucan)
   'en-US-ChristopherNeural',  // Finn   (frog)
   'en-US-JennyNeural',        // Gigi   (giraffe)
-  'en-US-AshleyNeural',       // Zara   (zebra)
+  'en-US-AnaNeural',          // Zara   (zebra)
   'en-US-RogerNeural',        // Ollie  (owl)
   'en-US-MichelleNeural',     // Penny  (panda)
-  'en-US-JasonNeural',        // Skippy (squirrel)
+  'en-US-EricNeural',         // Skippy (squirrel)
   'es-MX-DaliaNeural',        // Sofia  (sloth) — Spanish
 ];
 
