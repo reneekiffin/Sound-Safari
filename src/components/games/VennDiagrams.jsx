@@ -110,7 +110,7 @@ export default function VennDiagrams({ profile, totalStars, difficulty, recent, 
         } else {
           finish(nextCorrect, totalItems);
         }
-      }, 1200);
+      }, 2000);
     } else {
       play('wrong');
       speak(pickWrongCheer());
@@ -126,7 +126,7 @@ export default function VennDiagrams({ profile, totalStars, difficulty, recent, 
           return next;
         });
         setChecked(false);
-      }, 1200);
+      }, 2000);
     }
   };
 

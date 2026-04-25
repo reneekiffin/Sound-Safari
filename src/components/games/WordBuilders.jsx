@@ -79,7 +79,7 @@ export default function WordBuilders({ profile, totalStars, difficulty, recent, 
         setCelebrateRound(false);
         if (index + 1 >= rounds.length) finish(score + 1);
         else setIndex((i) => i + 1);
-      }, 1100);
+      }, 1900);
     } else {
       play('wrong');
       setWrong(opt);

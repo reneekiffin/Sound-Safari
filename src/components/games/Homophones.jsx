@@ -86,7 +86,7 @@ export default function Homophones({ profile, totalStars, difficulty, recent, on
         setCelebrateRound(false);
         if (index + 1 >= rounds.length) finish(score + 1);
         else setIndex((i) => i + 1);
-      }, 1000);
+      }, 1800);
     } else {
       play('wrong');
       setWrongPick(value);
