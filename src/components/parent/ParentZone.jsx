@@ -222,151 +222,45 @@ export default function ParentZone({
   );
 }
 
-// Voice & TTS settings.
-//
-// Three modes:
-//   1. Server (default)  — calls our /api/tts proxy which holds the
-//      ElevenLabs key server-side.  Nothing for parents to configure.
-//   2. ElevenLabs BYOK   — paste your own ElevenLabs key, browser
-//      talks to ElevenLabs directly.  Useful if someone wants to
-//      run the app on their own quota.
-//   3. Browser voice     — Web Speech only.  Free but robotic.
-//
-// The per-mascot voice mapping for ElevenLabs lives in
-// src/config/voices.js and is applied the same way regardless of
-// whether the request goes through the proxy or BYOK.
+// Voice settings — minimal now.  Speech routes through the server
+// proxy (Edge TTS, free) by default and falls back to Web Speech only
+// when the proxy is unreachable.  Nothing for parents to configure
+// except the audio on/off toggle (handled outside) and which Web
+// Speech voice to use as the fallback.
 function VoiceSection({ state, voices, onUpdateSettings }) {
-  const provider = state.settings.ttsProvider ?? 'server';
-  const [showKey, setShowKey] = useState(false);
-
   return (
     <div className="mt-4 rounded-2xl bg-white/70 p-3">
       <p className="font-heading text-base font-extrabold text-terracotta-600">
         Voice
       </p>
+      <p className="mt-1 font-body text-xs text-terracotta-600/90">
+        Each mascot speaks in their own voice automatically.  No setup
+        needed.
+      </p>
 
-      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <ProviderTab
-          label="Server voice ★"
-          sub="natural, nothing to set up"
-          active={provider === 'server'}
-          onClick={() => onUpdateSettings({ ttsProvider: 'server' })}
-          tone="jungle"
-        />
-        <ProviderTab
-          label="My own key"
-          sub="ElevenLabs BYOK"
-          active={provider === 'elevenlabs'}
-          onClick={() => onUpdateSettings({ ttsProvider: 'elevenlabs' })}
-          tone="parrot"
-        />
-        <ProviderTab
-          label="Browser voice"
-          sub="free, varies by device"
-          active={provider === 'browser'}
-          onClick={() => onUpdateSettings({ ttsProvider: 'browser' })}
-          tone="terracotta"
-        />
-      </div>
-
-      {provider === 'server' && (
-        <div className="mt-3 rounded-xl bg-jungle-400/10 p-3 font-body text-xs text-terracotta-600/90">
-          <strong className="font-extrabold text-jungle-500">
-            Using server voices.
-          </strong>{' '}
-          The six character voices (Ellie, Leo, Zara, Skippy, Penny, Sofia)
-          play through our secure server.  Other mascots use your browser's
-          built-in voice.
-        </div>
-      )}
-
-      {provider === 'browser' && (
-        <label className="mt-3 flex flex-col gap-1">
-          <span className="font-body text-sm font-bold text-terracotta-500">
-            Browser voice
-          </span>
-          <select
-            value={state.settings.voiceURI ?? ''}
-            onChange={(e) =>
-              onUpdateSettings({ voiceURI: e.target.value || null })
-            }
-            className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-base font-extrabold text-terracotta-600"
-          >
-            <option value="">Auto (best available)</option>
-            {(voices ?? []).map((v) => (
-              <option key={v.voiceURI} value={v.voiceURI}>
-                {v.name} ({v.lang})
-              </option>
-            ))}
-          </select>
-          <span className="font-body text-xs text-terracotta-500/80">
-            Tip: iPad → "Samantha (Enhanced)". Chrome → any "Natural" voice.
-          </span>
-        </label>
-      )}
-
-      {provider === 'elevenlabs' && (
-        <div className="mt-3 flex flex-col gap-3">
-          <label className="flex flex-col gap-1">
-            <span className="font-body text-sm font-bold text-terracotta-500">
-              Your ElevenLabs API key
-            </span>
-            <div className="flex gap-2">
-              <input
-                type={showKey ? 'text' : 'password'}
-                value={state.settings.ttsElevenLabsKey ?? ''}
-                onChange={(e) =>
-                  onUpdateSettings({ ttsElevenLabsKey: e.target.value })
-                }
-                placeholder="eleven_..."
-                className="focus-ring flex-1 rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-body text-base text-terracotta-600"
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <button
-                type="button"
-                onClick={() => setShowKey((s) => !s)}
-                className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-sm font-extrabold text-terracotta-600"
-              >
-                {showKey ? 'Hide' : 'Show'}
-              </button>
-            </div>
-          </label>
-
-          <div className="rounded-xl bg-parrot-400/10 p-3 font-body text-xs text-terracotta-600/90">
-            <strong className="font-extrabold text-parrot-500">
-              Using your own key.
-            </strong>{' '}
-            Usage will bill to your ElevenLabs account.  The key is stored
-            only in this browser's localStorage and sent only to
-            elevenlabs.io.  Get a key at{' '}
-            <span className="font-mono">elevenlabs.io → Profile → API Keys</span>.
-          </div>
-        </div>
-      )}
+      <label className="mt-3 flex flex-col gap-1">
+        <span className="font-body text-sm font-bold text-terracotta-500">
+          Browser voice (used as fallback if a mascot voice can't load)
+        </span>
+        <select
+          value={state.settings.voiceURI ?? ''}
+          onChange={(e) =>
+            onUpdateSettings({ voiceURI: e.target.value || null })
+          }
+          className="focus-ring rounded-2xl border-4 border-terracotta-200 bg-white px-3 py-2 font-heading text-base font-extrabold text-terracotta-600"
+        >
+          <option value="">Auto (best available)</option>
+          {(voices ?? []).map((v) => (
+            <option key={v.voiceURI} value={v.voiceURI}>
+              {v.name} ({v.lang})
+            </option>
+          ))}
+        </select>
+        <span className="font-body text-xs text-terracotta-500/80">
+          Tip: iPad → "Samantha (Enhanced)". Chrome → any "Natural" voice.
+        </span>
+      </label>
     </div>
-  );
-}
-
-// Visual tab used by the provider picker at the top of VoiceSection.
-// Kept local to this component; centralising would be overkill.
-function ProviderTab({ label, sub, active, onClick, tone = 'terracotta' }) {
-  const activeBg = {
-    terracotta: 'border-terracotta-500 bg-terracotta-400 text-white',
-    jungle: 'border-jungle-400 bg-jungle-400 text-white',
-    parrot: 'border-parrot-400 bg-parrot-400 text-white',
-  }[tone];
-  return (
-    <button
-      onClick={onClick}
-      className={[
-        'focus-ring rounded-xl border-4 px-3 py-2 text-left font-heading text-sm font-extrabold transition-colors',
-        active ? activeBg : 'border-terracotta-200 bg-white text-terracotta-600',
-      ].join(' ')}
-    >
-      {label}
-      <span className="block text-[11px] font-bold opacity-80">{sub}</span>
-    </button>
   );
 }
 

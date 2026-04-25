@@ -63,8 +63,9 @@ export function useSpeech({
   rate = 0.9,
   pitch = 1.1,
   preferredVoiceURI,
-  cloud, // { provider, apiKey, voice, speed }
-  speaker, // optional mascot key ('lion' | 'monkey' | ...) for per-voice routing
+  // `cloud` and BYOK paths are gone — speech now flows through the
+  // server proxy (Edge TTS) or falls back to Web Speech.
+  speaker, // mascot key ('lion' | 'monkey' | ...) for per-voice routing
 } = {}) {
   const [voices, setVoices] = useState([]);
 
@@ -93,13 +94,6 @@ export function useSpeech({
     window.speechSynthesis.cancel();
   }, []);
 
-  // Route cloud TTS through the server proxy by default (no key
-  // needed in the browser).  If a parent has pasted their own
-  // ElevenLabs key into the Parent Zone, use that directly instead.
-  const byokProvider = cloud?.provider === 'elevenlabs' && cloud?.apiKey
-    ? { provider: 'elevenlabs', apiKey: cloud.apiKey }
-    : null;
-
   const speak = useCallback(
     async (text, opts = {}) => {
       if (!enabled) return;
@@ -115,14 +109,12 @@ export function useSpeech({
         }
       }
 
-      // Priority 2: cloud TTS.  Proxy by default; BYOK overrides.  The
-      // adapter itself decides whether the speaker has a voice configured
-      // — if not, it returns isFallback:true and we drop to Web Speech.
+      // Priority 2: cloud TTS via the server proxy.  Adapter returns
+      // isFallback:true when the speaker has no voice configured (or
+      // the proxy errors), and we drop to Web Speech.
       const effectiveSpeaker = opts.speaker ?? speaker;
       if (effectiveSpeaker) {
         const { played, isFallback } = await speakCloud(text, {
-          provider: byokProvider?.provider ?? 'proxy',
-          apiKey: byokProvider?.apiKey,
           speaker: effectiveSpeaker,
         });
         if (played) return;
@@ -154,7 +146,7 @@ export function useSpeech({
         utter.onerror = () => resolve();
       });
     },
-    [enabled, byokProvider?.provider, byokProvider?.apiKey, speaker, pickVoice, pitch, rate],
+    [enabled, speaker, pickVoice, pitch, rate],
   );
 
   // Speak a phoneme followed by an example word.  TTS mangles bare
@@ -236,7 +228,6 @@ export function useSpeech({
     allVoices: voices,
     // True when a BYOK ElevenLabs key is set.  Callers use this to
     // show a "using your key" indicator in the Parent Zone.
-    byokActive: Boolean(byokProvider),
   };
 }
 
