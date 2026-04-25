@@ -75,7 +75,7 @@ export default function Similarities({ profile, totalStars, difficulty, recent, 
         setCelebrateRound(false);
         if (index + 1 >= rounds.length) finish(score + 1);
         else setIndex((i) => i + 1);
-      }, 1800);
+      }, 2400);
     } else {
       play('wrong');
       setWrongWord(opt.word);
@@ -87,7 +87,6 @@ export default function Similarities({ profile, totalStars, difficulty, recent, 
   const finish = (finalScore) => {
     setDone(true);
     play('celebrate');
-    speak(`${pickFinishCheer()} ${finalScore} out of ${rounds.length}!`);
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
     onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };

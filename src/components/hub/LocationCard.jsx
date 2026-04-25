@@ -7,8 +7,11 @@ export default function LocationCard({ game, locked, stars, onPlay, onHover }) {
   return (
     <motion.button
       onClick={onPlay}
-      onHoverStart={onHover}
-      onFocus={onHover}
+      // No onHoverStart / onFocus — these fired on touch (button gets
+      // focus on tap) and started speaking the host greeting, which
+      // then got cancelled mid-syllable by handleSelectGame.  Result:
+      // kids heard "rrro..." cut off.  The mascot's voice plays
+      // cleanly when the round prompt fires after game mount instead.
       disabled={locked}
       whileTap={!locked ? { scale: 0.96 } : undefined}
       whileHover={!locked ? { y: -6 } : undefined}

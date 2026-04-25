@@ -83,7 +83,7 @@ export default function WordBuilders({ profile, totalStars, difficulty, recent, 
         setCelebrateRound(false);
         if (index + 1 >= rounds.length) finish(score + 1);
         else setIndex((i) => i + 1);
-      }, 1900);
+      }, 2500);
     } else {
       play('wrong');
       setWrong(opt);
@@ -95,7 +95,6 @@ export default function WordBuilders({ profile, totalStars, difficulty, recent, 
   const finish = (finalScore) => {
     setDone(true);
     play('celebrate');
-    speak(`${pickFinishCheer()} ${finalScore} out of ${rounds.length}!`);
     const earnedStars = finalScore + (finalScore === rounds.length ? 1 : 0);
     onFinish({ earnedStars, score: finalScore, total: rounds.length, newRecent: nextRecent });
   };

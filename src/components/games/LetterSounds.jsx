@@ -82,7 +82,7 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
         } else {
           setIndex((i) => i + 1);
         }
-      }, 1800);
+      }, 2400);
     } else {
       play('wrong');
       setWrongLetter(letter);
@@ -113,9 +113,16 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
       onOpenSettings={onOpenSettings}
     >
       <div className="flex flex-col items-center text-center">
-        <PromptHeader animal="lion" happy={celebrateRound} hostLabel="Leo says...">
+        {/* The whole speech-bubble tile is tappable — kids tap it to
+            replay the phoneme so they can practise pronouncing it. */}
+        <PromptHeader
+          animal="lion"
+          happy={celebrateRound}
+          hostLabel="Leo says..."
+          onTap={replaySound}
+        >
           <p className="mt-1 font-display text-4xl text-terracotta-600 sm:text-5xl">
-            “{currentRound.phoneme}”
+            "{currentRound.phoneme}"
           </p>
           <p className="mt-1 font-body text-sm text-terracotta-600/80">
             like {currentRound.sampleWord}
