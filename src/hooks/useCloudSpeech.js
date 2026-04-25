@@ -13,6 +13,12 @@ import { voiceForSpeaker } from '../config/voices.js';
 
 const audioCache = new Map();
 let currentAudio = null;
+// Generation counter: every new speakCloud() / cancelCloud() bumps this.
+// In-flight fetches that resolve after their generation has been
+// superseded must be discarded — otherwise a slow prompt fetch can play
+// AFTER the praise that was triggered while it was loading, producing
+// the "previous question repeats then gets cut off" bug.
+let currentGen = 0;
 
 export async function speakCloud(text, { speaker } = {}) {
   if (!text || !speaker) return { played: false, isFallback: true };
@@ -22,12 +28,20 @@ export async function speakCloud(text, { speaker } = {}) {
     return { played: false, isFallback: true };
   }
 
+  const myGen = ++currentGen;
+
   try {
     const cacheKey = `${voice.voiceId}:${text}`;
     let url = audioCache.get(cacheKey);
     if (!url) {
       url = await synthesiseViaProxy({ voice, text });
       audioCache.set(cacheKey, url);
+    }
+
+    // If a newer call (or cancel) has happened while we were fetching,
+    // drop this result silently rather than playing a stale clip.
+    if (myGen !== currentGen) {
+      return { played: false, isFallback: false };
     }
 
     if (currentAudio) {
@@ -54,6 +68,8 @@ export async function speakCloud(text, { speaker } = {}) {
 }
 
 export function cancelCloud() {
+  // Bump the generation so any in-flight fetch is dropped on arrival.
+  currentGen++;
   if (currentAudio) {
     try { currentAudio.pause(); } catch {}
     currentAudio = null;
