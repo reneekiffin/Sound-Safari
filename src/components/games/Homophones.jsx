@@ -195,10 +195,11 @@ export default function Homophones({ profile, totalStars, difficulty, recent, on
                     : 'border-terracotta-200 hover:border-terracotta-300',
                 ].join(' ')}
               >
-                <span className="text-6xl sm:text-7xl" aria-hidden="true">{opt.emoji}</span>
-                <span className="mt-2 font-letter text-xl font-bold text-terracotta-600">
-                  {opt.word}
-                </span>
+                {/* Picture only — deliberately no word label.  Showing
+                    the spelling here would give away the answer in
+                    sentence-blank rounds and trivialise the
+                    sound-vs-image match in picture rounds. */}
+                <span className="text-7xl sm:text-8xl" aria-hidden="true">{opt.emoji}</span>
               </motion.button>
             ))}
           </div>

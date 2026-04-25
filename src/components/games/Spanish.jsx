@@ -78,10 +78,13 @@ export default function Spanish({ profile, totalStars, difficulty, recent, onExi
       play('correct');
       const cheer = pickCheer(CORRECT_CHEERS);
       setCelebrationPhrase(cheer);
-      // Say the Spanish word again (so kids hear it post-correct),
-      // then the English translation at a gentle pace.
+      // Sofia's correct-answer flow: re-say the Spanish word, then
+      // explain in English, then HOLD the celebration long enough for
+      // the kid to finish hearing the English explanation before the
+      // next flash card appears.  "That's apple in English!" is ~2s
+      // of speech, so we wait 3.6s total before advancing.
       speak(round.spanish, { rate: 0.85, lang: 'es-ES' });
-      setTimeout(() => speak(`That's "${round.english}" in English!`), 500);
+      setTimeout(() => speak(`That's "${round.english}" in English!`), 700);
       setAnswered(true);
       setCelebrateRound(true);
       setScore((s) => s + 1);
@@ -89,7 +92,7 @@ export default function Spanish({ profile, totalStars, difficulty, recent, onExi
         setCelebrateRound(false);
         if (index + 1 >= rounds.length) finish(score + 1);
         else setIndex((i) => i + 1);
-      }, 2000);
+      }, 3600);
     } else {
       play('wrong');
       setWrongWord(opt.word);
