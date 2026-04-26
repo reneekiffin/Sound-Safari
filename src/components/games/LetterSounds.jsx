@@ -53,7 +53,7 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
     setAnswered(false);
     setWrongLetter(null);
     const t = setTimeout(() => {
-      speakLetterSound(currentRound);
+      speakLetterSound(currentRound, { intro: true });
     }, 400);
     return () => clearTimeout(t);
   }, [currentRound, speakLetterSound, done]);
@@ -61,7 +61,7 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
   const replaySound = () => {
     if (!currentRound) return;
     play('tap');
-    speakLetterSound(currentRound, { rate: 0.7 });
+    speakLetterSound(currentRound, { intro: true, rate: 0.7 });
   };
 
   const handlePick = (letter) => {
@@ -121,18 +121,21 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
           hostLabel="Leo says..."
           onTap={replaySound}
         >
+          <p className="mt-1 font-body text-base font-bold text-terracotta-500">
+            What letter makes this sound?
+          </p>
           <p className="mt-1 font-display text-4xl text-terracotta-600 sm:text-5xl">
             "{currentRound.phoneme}"
           </p>
           <p className="mt-1 font-body text-sm text-terracotta-600/80">
-            like {currentRound.sampleWord}
+            as in {currentRound.sampleWord}
           </p>
         </PromptHeader>
 
         <div className="mt-2 flex items-center gap-4">
           <AudioButton onPress={replaySound} label="Play the sound again" />
           <p className="max-w-xs text-left font-body text-base text-terracotta-600/90 sm:text-lg">
-            Tap a word to practise the sound — then tap the matching letter!
+            Tap the speaker to hear it again, then tap the letter that makes the sound!
           </p>
         </div>
 
