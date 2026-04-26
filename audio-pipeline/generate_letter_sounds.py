@@ -2,27 +2,33 @@
 """
 Batch-generate letter SOUND MP3s for Sound Safari.
 
-Reads `letter-sounds.json` and feeds the `tts_input` field as plain
+Reads `letter-sounds.json` and feeds the `tts_speech` field as plain
 text to Microsoft Edge's neural TTS (`edge-tts` package).  We tried
 SSML <phoneme alphabet="ipa"> earlier — Edge's free Read-Aloud
 endpoint silently strips them and returns silence — so the JSON now
-carries hand-tuned phonetic spellings instead.
+carries hand-tuned phonetic spellings instead.  Crucially `tts_speech`
+is decoupled from the on-screen `display` so we can keep tweaking
+what's sent to the engine without touching what kids see.
 
 Voice for every letter: en-US-DavisNeural (Leo's voice).
 Output directory:        ../public/audio/letters/sounds/
 
+Per-letter regeneration
+-----------------------
+By default the script regenerates all 26 letters.  To regenerate a
+subset (e.g. after tweaking only S and K in the JSON):
+
+    python generate_letter_sounds.py --only S,K
+
 Strategy table
 --------------
-The script is modular: each entry has an associated `STRATEGY` that
-controls how the audio is rendered.  The default is `plain` (just
-synthesise `tts_input` directly).  When a letter still sounds wrong
-after this round, swap its strategy to `word_trim` and add a recipe
-to the WORD_TRIM_RECIPES dict — the script will synthesise a real
-word ("snake") and use ffmpeg to trim the audio to just the target
-phoneme range.
-
-To swap an individual letter, edit STRATEGIES[letter] without touching
-the other entries — nothing else in the script changes.
+Each entry has an associated `STRATEGY` controlling how the audio is
+rendered.  Default: `plain` (synthesise `tts_speech` directly).  When
+a letter still sounds wrong after tweaking, swap its strategy to
+`word_trim` and add a recipe to WORD_TRIM_RECIPES — the script
+synthesises a real word ("snake") and uses ffmpeg to trim to a
+sub-range.  Letters can be swapped individually without touching the
+rest of the script.
 
 Usage (from the audio-pipeline/ directory):
 
@@ -31,10 +37,12 @@ Usage (from the audio-pipeline/ directory):
     # .venv\\Scripts\\activate           # Windows
     pip install edge-tts
 
-    python generate_letter_sounds.py
+    python generate_letter_sounds.py            # all 26
+    python generate_letter_sounds.py --only S   # just S
 """
 from __future__ import annotations
 
+import argparse
 import asyncio
 import json
 import shutil
@@ -64,7 +72,7 @@ VOLUME = "+0%"
 # ---------------------------------------------------------------------------
 # Per-letter strategy.
 # ---------------------------------------------------------------------------
-# 'plain'      → synth tts_input directly (default for every letter today).
+# 'plain'      → synth tts_speech directly (default for every letter today).
 # 'word_trim'  → synth a real word and ffmpeg-trim to a sub-range.  Add the
 #                letter's key to WORD_TRIM_RECIPES below to use this.
 #
@@ -105,8 +113,8 @@ def have_ffmpeg() -> bool:
 
 
 async def render_plain(entry: dict, output: Path) -> None:
-    """Strategy: synth tts_input directly."""
-    await synth_to_file(entry["tts_input"], output)
+    """Strategy: synth tts_speech directly."""
+    await synth_to_file(entry["tts_speech"], output)
 
 
 async def render_word_trim(entry: dict, output: Path) -> None:
@@ -134,7 +142,6 @@ async def render_word_trim(entry: dict, output: Path) -> None:
             "-acodec", "copy",
             str(output),
         ]
-        # Suppress ffmpeg's normal stderr noise; show it on failure only.
         proc = subprocess.run(cmd, capture_output=True, text=True)
         if proc.returncode != 0:
             raise RuntimeError(f"ffmpeg failed: {proc.stderr.strip()[:200]}")
@@ -154,7 +161,7 @@ async def generate_one(entry: dict) -> bool:
     strategy = STRATEGIES.get(letter, "plain")
     renderer = RENDERERS[strategy]
 
-    print(f"  [{letter}] ({strategy:10}) → {out.name} ", end="", flush=True)
+    print(f"  [{letter}] ({strategy:10}) tts_speech={entry['tts_speech']!r:>10} → {out.name} ", end="", flush=True)
     try:
         await renderer(entry, out)
         print("✓")
@@ -164,7 +171,23 @@ async def generate_one(entry: dict) -> bool:
         return False
 
 
+def parse_only(raw: str | None) -> set[str] | None:
+    """Parse --only's CSV value into an upper-case letter set."""
+    if not raw:
+        return None
+    return {p.strip().upper() for p in raw.split(",") if p.strip()}
+
+
 async def main() -> int:
+    ap = argparse.ArgumentParser(description="Generate Sound Safari letter-sound MP3s.")
+    ap.add_argument(
+        "--only",
+        help="Comma-separated list of letters to regenerate (e.g. 'S,K'). "
+             "Defaults to all 26.",
+    )
+    args = ap.parse_args()
+    only = parse_only(args.only)
+
     if not JSON_PATH.is_file():
         sys.stderr.write(f"Cannot find {JSON_PATH}\n")
         return 1
@@ -176,7 +199,13 @@ async def main() -> int:
         sys.stderr.write("letter-sounds.json has no entries\n")
         return 1
 
-    print(f"Generating audio for {len(entries)} letter sounds…")
+    if only is not None:
+        entries = [e for e in entries if e["letter"].upper() in only]
+        if not entries:
+            sys.stderr.write(f"--only={args.only} matched nothing\n")
+            return 1
+
+    print(f"Generating audio for {len(entries)} letter sound(s)…")
     print(f"  voice  : {VOICE}")
     print(f"  output : {SOUNDS_DIR}")
     print()

@@ -1,12 +1,21 @@
 // Letter Sounds (ages 3-5) — hear a phoneme, pick the matching letter.
 //
 // Each round carries:
-//   - `letter`      the grapheme displayed on the card
-//   - `phoneme`     the stretched sound TTS should make (e.g. "aaa", "mmm")
-//   - `sampleWord`  a kid-friendly example word, used by the TTS carrier
-//                   phrase ("A says aaa, like apple") — this is what makes
-//                   TTS pronounce phonemes correctly instead of robotically
-//   - `options`     the letter choices, including the correct letter
+//   - `letter`     the grapheme displayed on the answer cards (e.g. 'a')
+//   - `display`    the on-screen phoneme label kids read in the prompt
+//                  bubble (e.g. 'Aaa').  Intentionally distinct from
+//                  `ttsSpeech` so we can re-tune what Edge speaks
+//                  without touching what kids see.
+//   - `ttsSpeech`  the string we feed to edge-tts to produce the
+//                  correct sound (e.g. 'ah').  Tuned by ear against
+//                  en-US-DavisNeural.
+//   - `sampleWord` a kid-friendly example used in the carrier phrase
+//                  ("ah... as in apple") so TTS pronounces real
+//                  English instead of an isolated phoneme.
+//   - `options`    the letter choices, including the correct letter
+//
+// The display/ttsSpeech split mirrors the source-of-truth JSON at
+// audio-pipeline/letter-sounds.json — keep them in sync.
 //
 // Difficulty curve:
 //   easy   — 3 options, short vowels + common consonants, clear contrast
@@ -14,65 +23,57 @@
 //   hard   — 4 options, digraphs (sh/ch/th/ng/qu) + easily-confused pairs
 
 const EASY = [
-  // Phoneme spellings are kept in sync with audio-pipeline/letter-sounds.json
-  // (the `tts_input` field for each letter).  These have been tuned by ear
-  // against Edge's en-US-DavisNeural — short open syllables for vowels,
-  // CVC-shaped tokens for stops ("bub", "cup", "tut", "pup") so Edge says
-  // them as one syllable instead of spelling out letters, and tripled
-  // consonants for fricatives/continuants ("ssssss", "ffff", "mmm",
-  // "nnn", "lll").  When the pipeline regenerates the MP3s the runtime
-  // automatically picks them up via registerClipBundle.
-  { letter: 'a', phoneme: 'aaa', sampleWord: 'apple', options: ['a', 'o', 'u'] },
-  { letter: 'm', phoneme: 'mmm', sampleWord: 'monkey', options: ['m', 's', 't'] },
-  { letter: 's', phoneme: 'ssssss', sampleWord: 'snake', options: ['s', 'f', 'm'] },
-  { letter: 't', phoneme: 'tut', sampleWord: 'tiger', options: ['t', 'b', 'd'] },
-  { letter: 'p', phoneme: 'pup', sampleWord: 'panda', options: ['p', 't', 'k'] },
-  { letter: 'i', phoneme: 'ihh', sampleWord: 'igloo', options: ['i', 'e', 'a'] },
-  { letter: 'n', phoneme: 'nnn', sampleWord: 'nest', options: ['n', 'm', 'r'] },
-  { letter: 'o', phoneme: 'ahh', sampleWord: 'octopus', options: ['o', 'u', 'a'] },
-  { letter: 'b', phoneme: 'bub', sampleWord: 'bear', options: ['b', 'd', 'p'] },
-  { letter: 'g', phoneme: 'gut', sampleWord: 'goat', options: ['g', 'k', 'j'] },
-  { letter: 'd', phoneme: 'dud', sampleWord: 'dog', options: ['d', 'b', 'p'] },
-  { letter: 'c', phoneme: 'cup', sampleWord: 'cat', options: ['c', 'g', 't'] },
-  { letter: 'e', phoneme: 'ehh', sampleWord: 'egg', options: ['e', 'a', 'i'] },
-  { letter: 'l', phoneme: 'lll', sampleWord: 'lion', options: ['l', 'n', 'r'] },
-  { letter: 'r', phoneme: 'rrr', sampleWord: 'rabbit', options: ['r', 'l', 'w'] },
-  { letter: 'f', phoneme: 'ffff', sampleWord: 'fish', options: ['f', 's', 'v'] },
-  { letter: 'h', phoneme: 'hut', sampleWord: 'hat', options: ['h', 'f', 'b'] },
-  { letter: 'u', phoneme: 'uhh', sampleWord: 'umbrella', options: ['u', 'o', 'a'] },
+  { letter: 'a', display: 'Aaa',  ttsSpeech: 'ah',    sampleWord: 'apple',    options: ['a', 'o', 'u'] },
+  { letter: 'm', display: 'Mmm',  ttsSpeech: 'mmm',   sampleWord: 'monkey',   options: ['m', 's', 't'] },
+  { letter: 's', display: 'Sss',  ttsSpeech: 'hisss', sampleWord: 'snake',    options: ['s', 'f', 'm'] },
+  { letter: 't', display: 'Tuh',  ttsSpeech: 'tut',   sampleWord: 'tiger',    options: ['t', 'b', 'd'] },
+  { letter: 'p', display: 'Puh',  ttsSpeech: 'pup',   sampleWord: 'panda',    options: ['p', 't', 'k'] },
+  { letter: 'i', display: 'Ih',   ttsSpeech: 'ih',    sampleWord: 'igloo',    options: ['i', 'e', 'a'] },
+  { letter: 'n', display: 'Nnn',  ttsSpeech: 'nnn',   sampleWord: 'nest',     options: ['n', 'm', 'r'] },
+  { letter: 'o', display: 'Ahh',  ttsSpeech: 'ah',    sampleWord: 'octopus',  options: ['o', 'u', 'a'] },
+  { letter: 'b', display: 'Buh',  ttsSpeech: 'bub',   sampleWord: 'bear',     options: ['b', 'd', 'p'] },
+  { letter: 'g', display: 'Guh',  ttsSpeech: 'gut',   sampleWord: 'goat',     options: ['g', 'k', 'j'] },
+  { letter: 'd', display: 'Duh',  ttsSpeech: 'dud',   sampleWord: 'dog',      options: ['d', 'b', 'p'] },
+  { letter: 'c', display: 'Cuh',  ttsSpeech: 'cup',   sampleWord: 'cat',      options: ['c', 'g', 't'] },
+  { letter: 'e', display: 'Eh',   ttsSpeech: 'eh',    sampleWord: 'egg',      options: ['e', 'a', 'i'] },
+  { letter: 'l', display: 'Lll',  ttsSpeech: 'elle',  sampleWord: 'lion',     options: ['l', 'n', 'r'] },
+  { letter: 'r', display: 'Rrr',  ttsSpeech: 'err',   sampleWord: 'rabbit',   options: ['r', 'l', 'w'] },
+  { letter: 'f', display: 'Fff',  ttsSpeech: 'fff',   sampleWord: 'fish',     options: ['f', 's', 'v'] },
+  { letter: 'h', display: 'Huh',  ttsSpeech: 'hut',   sampleWord: 'hat',      options: ['h', 'f', 'b'] },
+  { letter: 'u', display: 'Uh',   ttsSpeech: 'uh',    sampleWord: 'umbrella', options: ['u', 'o', 'a'] },
 ];
 
 const MEDIUM = [
-  { letter: 'k', phoneme: 'cup', sampleWord: 'kite', options: ['k', 'c', 'g', 't'] },
-  { letter: 'v', phoneme: 'vvv', sampleWord: 'vulture', options: ['v', 'f', 'w', 'b'] },
-  { letter: 'w', phoneme: 'wut', sampleWord: 'water', options: ['w', 'v', 'y', 'r'] },
-  { letter: 'y', phoneme: 'yut', sampleWord: 'yellow', options: ['y', 'j', 'w', 'i'] },
-  { letter: 'j', phoneme: 'jut', sampleWord: 'jungle', options: ['j', 'g', 'y', 'z'] },
-  { letter: 'z', phoneme: 'zzz', sampleWord: 'zebra', options: ['z', 's', 'x', 'j'] },
-  { letter: 'x', phoneme: 'kss', sampleWord: 'box', options: ['x', 's', 'z', 'k'] },
-  { letter: 'e', phoneme: 'ehh', sampleWord: 'elephant', options: ['e', 'i', 'a', 'u'] },
-  { letter: 'i', phoneme: 'ihh', sampleWord: 'insect', options: ['i', 'e', 'a', 'u'] },
-  { letter: 'u', phoneme: 'uhh', sampleWord: 'under', options: ['u', 'o', 'a', 'e'] },
-  { letter: 'f', phoneme: 'ffff', sampleWord: 'frog', options: ['f', 'v', 's', 'h'] },
-  { letter: 'r', phoneme: 'rrr', sampleWord: 'rainbow', options: ['r', 'w', 'l', 'n'] },
-  { letter: 'l', phoneme: 'lll', sampleWord: 'leaf', options: ['l', 'r', 'n', 'w'] },
-  { letter: 'g', phoneme: 'gut', sampleWord: 'giraffe (hard g)', options: ['g', 'k', 'c', 'j'] },
-  { letter: 'n', phoneme: 'nnn', sampleWord: 'nut', options: ['n', 'm', 'r', 'l'] },
+  { letter: 'k', display: 'Kuh',  ttsSpeech: 'cup',  sampleWord: 'kite',             options: ['k', 'c', 'g', 't'] },
+  { letter: 'v', display: 'Vvv',  ttsSpeech: 'vvv',  sampleWord: 'vulture',          options: ['v', 'f', 'w', 'b'] },
+  { letter: 'w', display: 'Wuh',  ttsSpeech: 'wut',  sampleWord: 'water',            options: ['w', 'v', 'y', 'r'] },
+  { letter: 'y', display: 'Yuh',  ttsSpeech: 'yut',  sampleWord: 'yellow',           options: ['y', 'j', 'w', 'i'] },
+  { letter: 'j', display: 'Juh',  ttsSpeech: 'jut',  sampleWord: 'jungle',           options: ['j', 'g', 'y', 'z'] },
+  { letter: 'z', display: 'Zzz',  ttsSpeech: 'zzz',  sampleWord: 'zebra',            options: ['z', 's', 'x', 'j'] },
+  { letter: 'x', display: 'Ks',   ttsSpeech: 'ex',   sampleWord: 'box',              options: ['x', 's', 'z', 'k'] },
+  { letter: 'e', display: 'Eh',   ttsSpeech: 'eh',   sampleWord: 'elephant',         options: ['e', 'i', 'a', 'u'] },
+  { letter: 'i', display: 'Ih',   ttsSpeech: 'ih',   sampleWord: 'insect',           options: ['i', 'e', 'a', 'u'] },
+  { letter: 'u', display: 'Uh',   ttsSpeech: 'uh',   sampleWord: 'under',            options: ['u', 'o', 'a', 'e'] },
+  { letter: 'f', display: 'Fff',  ttsSpeech: 'fff',  sampleWord: 'frog',             options: ['f', 'v', 's', 'h'] },
+  { letter: 'r', display: 'Rrr',  ttsSpeech: 'err',  sampleWord: 'rainbow',          options: ['r', 'w', 'l', 'n'] },
+  { letter: 'l', display: 'Lll',  ttsSpeech: 'elle', sampleWord: 'leaf',             options: ['l', 'r', 'n', 'w'] },
+  { letter: 'g', display: 'Guh',  ttsSpeech: 'gut',  sampleWord: 'giraffe (hard g)', options: ['g', 'k', 'c', 'j'] },
+  { letter: 'n', display: 'Nnn',  ttsSpeech: 'nnn',  sampleWord: 'nut',              options: ['n', 'm', 'r', 'l'] },
 ];
 
 const HARD = [
-  { letter: 'sh', phoneme: 'sh', sampleWord: 'shoe', options: ['sh', 's', 'ch', 'th'] },
-  { letter: 'ch', phoneme: 'ch', sampleWord: 'cheese', options: ['ch', 'sh', 'j', 't'] },
-  { letter: 'th', phoneme: 'th', sampleWord: 'three', options: ['th', 'f', 'sh', 'd'] },
-  { letter: 'ng', phoneme: 'ng', sampleWord: 'ring', options: ['ng', 'n', 'g', 'nk'] },
-  { letter: 'qu', phoneme: 'kwuh', sampleWord: 'queen', options: ['qu', 'kw', 'k', 'c'] },
-  { letter: 'ai', phoneme: 'ay', sampleWord: 'rain', options: ['ai', 'ay', 'e', 'i'] },
-  { letter: 'ee', phoneme: 'ee', sampleWord: 'tree', options: ['ee', 'e', 'i', 'ea'] },
-  { letter: 'oo', phoneme: 'oo', sampleWord: 'moon', options: ['oo', 'u', 'o', 'ue'] },
-  { letter: 'oa', phoneme: 'oh', sampleWord: 'boat', options: ['oa', 'o', 'ow', 'au'] },
-  { letter: 'ou', phoneme: 'ow', sampleWord: 'cloud', options: ['ou', 'ow', 'o', 'au'] },
-  { letter: 'ar', phoneme: 'ar', sampleWord: 'star', options: ['ar', 'a', 'or', 'er'] },
-  { letter: 'or', phoneme: 'or', sampleWord: 'fork', options: ['or', 'ar', 'er', 'ur'] },
+  { letter: 'sh', display: 'Sh',   ttsSpeech: 'sh',   sampleWord: 'shoe',   options: ['sh', 's', 'ch', 'th'] },
+  { letter: 'ch', display: 'Ch',   ttsSpeech: 'ch',   sampleWord: 'cheese', options: ['ch', 'sh', 'j', 't'] },
+  { letter: 'th', display: 'Th',   ttsSpeech: 'th',   sampleWord: 'three',  options: ['th', 'f', 'sh', 'd'] },
+  { letter: 'ng', display: 'Ng',   ttsSpeech: 'ng',   sampleWord: 'ring',   options: ['ng', 'n', 'g', 'nk'] },
+  { letter: 'qu', display: 'Kwuh', ttsSpeech: 'kwut', sampleWord: 'queen',  options: ['qu', 'kw', 'k', 'c'] },
+  { letter: 'ai', display: 'Ay',   ttsSpeech: 'ay',   sampleWord: 'rain',   options: ['ai', 'ay', 'e', 'i'] },
+  { letter: 'ee', display: 'Ee',   ttsSpeech: 'ee',   sampleWord: 'tree',   options: ['ee', 'e', 'i', 'ea'] },
+  { letter: 'oo', display: 'Oo',   ttsSpeech: 'oo',   sampleWord: 'moon',   options: ['oo', 'u', 'o', 'ue'] },
+  { letter: 'oa', display: 'Oh',   ttsSpeech: 'oh',   sampleWord: 'boat',   options: ['oa', 'o', 'ow', 'au'] },
+  { letter: 'ou', display: 'Ow',   ttsSpeech: 'ow',   sampleWord: 'cloud',  options: ['ou', 'ow', 'o', 'au'] },
+  { letter: 'ar', display: 'Ar',   ttsSpeech: 'ar',   sampleWord: 'star',   options: ['ar', 'a', 'or', 'er'] },
+  { letter: 'or', display: 'Or',   ttsSpeech: 'or',   sampleWord: 'fork',   options: ['or', 'ar', 'er', 'ur'] },
 ];
 
 export const LETTER_SOUNDS_ROUNDS = {
@@ -81,16 +82,11 @@ export const LETTER_SOUNDS_ROUNDS = {
   hard: HARD,
 };
 
-// Also export a flat sample-word lookup so other games can ask TTS to say
-// e.g. "the letter A, like apple".
-export const SAMPLE_WORDS = Object.fromEntries(
-  [...EASY, ...MEDIUM, ...HARD].map((r) => [r.letter, r.sampleWord]),
-);
-
-// (LETTER_IPA was removed — Edge's free Read-Aloud endpoint silently
-// strips inline <phoneme alphabet="ipa"> SSML, so we keep all letter
-// sounds as plain phonetic text instead.  See audio-pipeline/
-// letter-sounds.json for the source-of-truth spellings.)
+// Cross-letter lookups for letter-card hover previews so we can speak
+// any letter's tts_speech regardless of which round we're on.
+const _ALL = [...EASY, ...MEDIUM, ...HARD];
+export const SAMPLE_WORDS = Object.fromEntries(_ALL.map((r) => [r.letter, r.sampleWord]));
+export const TTS_SPEECH = Object.fromEntries(_ALL.map((r) => [r.letter, r.ttsSpeech]));
 
 // Example-word chips shown beneath the phoneme so kids can tap each one
 // to hear the word pronounced — reinforces the sound-in-context.  Each

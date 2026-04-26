@@ -4,7 +4,7 @@ import AudioButton from '../shared/AudioButton.jsx';
 import Celebration from '../shared/Celebration.jsx';
 import PromptHeader from '../shared/PromptHeader.jsx';
 import GameShell from './GameShell.jsx';
-import { LETTER_SOUNDS_ROUNDS, SAMPLE_WORDS, getLetterExamples } from '../../data/letterSounds.js';
+import { LETTER_SOUNDS_ROUNDS, SAMPLE_WORDS, TTS_SPEECH, getLetterExamples } from '../../data/letterSounds.js';
 import { pickSession, shuffleOptions } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
 import { useSpeech } from '../../hooks/useSpeech.js';
@@ -124,8 +124,12 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
           <p className="mt-1 font-body text-base font-bold text-terracotta-500">
             What letter makes this sound?
           </p>
+          {/* `display` is intentionally distinct from the string we
+              feed to Edge (`ttsSpeech`).  Kids see the canonical
+              phonetic label here ("Sss") while the engine receives
+              whatever spelling renders the right sound ("hisss"). */}
           <p className="mt-1 font-display text-4xl text-terracotta-600 sm:text-5xl">
-            "{currentRound.phoneme}"
+            "{currentRound.display}"
           </p>
           <p className="mt-1 font-body text-sm text-terracotta-600/80">
             as in {currentRound.sampleWord}
@@ -171,7 +175,17 @@ export default function LetterSounds({ profile, totalStars, difficulty, recent, 
                 onTap={() => handlePick(letter)}
                 onPreview={() =>
                   speakLetterSound(
-                    { letter, phoneme: currentRound.letter === letter ? currentRound.phoneme : letter, sampleWord: SAMPLE_WORDS[letter] },
+                    {
+                      letter,
+                      // For the round's own letter we already have the
+                      // tuned ttsSpeech on hand; for the distractors we
+                      // look it up so each card auditions correctly.
+                      ttsSpeech:
+                        currentRound.letter === letter
+                          ? currentRound.ttsSpeech
+                          : (TTS_SPEECH[letter] ?? letter),
+                      sampleWord: SAMPLE_WORDS[letter],
+                    },
                     { rate: 0.75 },
                   )
                 }
