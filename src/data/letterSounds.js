@@ -90,6 +90,26 @@ export const SAMPLE_WORDS = Object.fromEntries(
   [...EASY, ...MEDIUM, ...HARD].map((r) => [r.letter, r.sampleWord]),
 );
 
+// IPA per letter for the LETTER SOUND (not the letter name).
+//
+// These power runtime SSML <phoneme alphabet="ipa" ph="..."> in
+// useSpeech.js — we send the SSML through the /api/tts proxy so Edge
+// renders the actual phoneme rather than reading the plain-text
+// spelling ("sss" → "ess ess ess", "kuh" → "coo").  Stop consonants
+// carry the schwa /ʌ/ tail kids learn from phonics ("buh", "puh");
+// continuants stand alone so they're heard as sustained sounds.
+//
+// Source of truth is `audio-pipeline/letter-sounds.json` — keep these
+// in sync.  Letters without an entry (digraphs sh/ch/th/ng/qu, vowel
+// pairs, r-controlled) fall through to the phonetic spelling.
+export const LETTER_IPA = {
+  a: 'æ', e: 'ɛ', i: 'ɪ', o: 'ɒ', u: 'ʌ',
+  b: 'bʌ', c: 'kʌ', d: 'dʌ', f: 'f', g: 'ɡʌ',
+  h: 'hʌ', j: 'dʒʌ', k: 'kʌ', l: 'l', m: 'm',
+  n: 'n', p: 'pʌ', q: 'kwʌ', r: 'ɹ', s: 's',
+  t: 'tʌ', v: 'v', w: 'wʌ', x: 'ks', y: 'jʌ', z: 'z',
+};
+
 // Example-word chips shown beneath the phoneme so kids can tap each one
 // to hear the word pronounced — reinforces the sound-in-context.  Each
 // letter gets 3 kid-friendly examples with an emoji so pre-readers can

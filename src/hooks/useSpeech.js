@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { playClipIfAvailable } from './useAudioClips.js';
 import { speakCloud, cancelCloud } from './useCloudSpeech.js';
+import { LETTER_IPA } from '../data/letterSounds.js';
 
 // Kid-friendly TTS wrapper with a three-tier strategy:
 //
@@ -175,16 +176,21 @@ export function useSpeech({
         const ok = await playPromise;
         if (ok) return;
       }
-      // Plain text only.  Edge's standard neural voices ignore
-      // <phoneme> SSML tags inconsistently — that's why kids were
-      // hearing nothing when they tapped the speech tile or speaker.
-      // And nested <prosody> (ours inside msedge-tts's outer wrapper)
-      // can confuse the synthesiser too.
+      // For single letters with an IPA mapping, route the sound
+      // through SSML <phoneme alphabet="ipa" ph="..."> so Edge renders
+      // the actual phoneme (S = hissing /s/, P = /pʌ/) instead of
+      // reading the plain-text spelling letter-by-letter.  msedge-tts
+      // wraps the payload in its own <speak><voice><prosody> shell,
+      // and the inline <phoneme> tag passes through cleanly.
       //
-      // What works: feed Edge the phoneme spelling as plain text
-      // ("fff", "buh", "ahh") and let the per-character voice rate
-      // in voices.js handle the slowdown.  Ellipsis = natural pause.
-      const core = sampleWord ? `${phoneme}... as in ${sampleWord}.` : `${phoneme}.`;
+      // Falls back to the plain `phoneme` string for anything without
+      // an IPA entry (digraphs, vowel pairs, r-controlled vowels) so
+      // the HARD-tier rounds still pronounce sensibly.
+      const ipa = LETTER_IPA[letter];
+      const sound = ipa
+        ? `<phoneme alphabet="ipa" ph="${ipa}">${phoneme}</phoneme>`
+        : phoneme;
+      const core = sampleWord ? `${sound}... as in ${sampleWord}.` : `${sound}.`;
       const phrase = intro
         ? `What letter makes this sound? ${core} Tap the letter you hear!`
         : core;
