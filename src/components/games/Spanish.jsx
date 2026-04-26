@@ -145,9 +145,15 @@ export default function Spanish({ profile, totalStars, difficulty, recent, onExi
             }}
             label={`Hear ${round.spanish} again`}
           />
-          <p className="max-w-xs text-left font-body text-base text-terracotta-600/90 sm:text-lg">
-            Tap the picture that matches the Spanish word!
-          </p>
+          <div className="max-w-xs text-left font-body text-base text-terracotta-600/90 sm:text-lg">
+            <p>Tap the picture that matches the Spanish word!</p>
+            {difficulty === 'easy' && (
+              <p className="mt-1 text-sm text-terracotta-500">
+                Don't know Spanish yet? Tap the 🔊 on any picture to hear it
+                in Spanish first.
+              </p>
+            )}
+          </div>
         </div>
 
         <div
@@ -174,7 +180,7 @@ export default function Spanish({ profile, totalStars, difficulty, recent, onExi
               }
               transition={{ type: 'spring', stiffness: 320, damping: 18 }}
               className={[
-                'focus-ring flex flex-col items-center rounded-[28px] border-4 bg-white p-4 text-center shadow-card',
+                'focus-ring relative flex flex-col items-center rounded-[28px] border-4 bg-white p-4 text-center shadow-card',
                 answered && opt.word === round.answer
                   ? 'border-sage-400 bg-sage-100'
                   : wrongWord === opt.word
@@ -190,6 +196,31 @@ export default function Spanish({ profile, totalStars, difficulty, recent, onExi
               <span className="text-5xl sm:text-6xl" aria-hidden="true">{opt.emoji}</span>
               <span className="mt-2 font-letter text-lg font-bold text-terracotta-600">
                 {opt.english}
+              </span>
+              {/* Touch-friendly preview.  Hover/focus speak the Spanish
+                  word on desktop, but kids on tablets need a tappable
+                  way to audition each option without picking it as the
+                  answer. role=button + stopPropagation keeps the parent
+                  card's onClick (which submits) from firing. */}
+              <span
+                role="button"
+                tabIndex={0}
+                aria-label={`Hear ${opt.word} in Spanish`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  play('tap');
+                  speak(opt.word, { rate: 0.85, lang: 'es-ES' });
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    speak(opt.word, { rate: 0.85, lang: 'es-ES' });
+                  }
+                }}
+                className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-savanna-200 text-base shadow-sm transition-transform hover:scale-110"
+              >
+                🔊
               </span>
             </motion.button>
           ))}
