@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { playClipIfAvailable } from './useAudioClips.js';
 import { speakCloud, cancelCloud } from './useCloudSpeech.js';
-import { LETTER_IPA } from '../data/letterSounds.js';
 
 // Kid-friendly TTS wrapper with a three-tier strategy:
 //
@@ -176,21 +175,14 @@ export function useSpeech({
         const ok = await playPromise;
         if (ok) return;
       }
-      // For single letters with an IPA mapping, route the sound
-      // through SSML <phoneme alphabet="ipa" ph="..."> so Edge renders
-      // the actual phoneme (S = hissing /s/, P = /pʌ/) instead of
-      // reading the plain-text spelling letter-by-letter.  msedge-tts
-      // wraps the payload in its own <speak><voice><prosody> shell,
-      // and the inline <phoneme> tag passes through cleanly.
-      //
-      // Falls back to the plain `phoneme` string for anything without
-      // an IPA entry (digraphs, vowel pairs, r-controlled vowels) so
-      // the HARD-tier rounds still pronounce sensibly.
-      const ipa = LETTER_IPA[letter];
-      const sound = ipa
-        ? `<phoneme alphabet="ipa" ph="${ipa}">${phoneme}</phoneme>`
-        : phoneme;
-      const core = sampleWord ? `${sound}... as in ${sampleWord}.` : `${sound}.`;
+      // Plain text only.  Edge's Read-Aloud endpoint silently fails
+      // when fed inline <phoneme alphabet="ipa"> tags — we tried
+      // routing IPA SSML through the proxy and the whole utterance
+      // came back empty.  Going to fix this with build-time MP3
+      // generation instead (see audio-pipeline/letter-sounds.json).
+      // Until those land, plain phonetic spelling is what reaches
+      // Edge — kids hear "ahh", "buh", etc.
+      const core = sampleWord ? `${phoneme}... as in ${sampleWord}.` : `${phoneme}.`;
       const phrase = intro
         ? `What letter makes this sound? ${core} Tap the letter you hear!`
         : core;
