@@ -153,16 +153,17 @@ export function useSpeech({
   // phonemes in isolation, but happily pronounces real English — so we
   // chain the stretched sound and the example word with a brief pause.
   //
-  // Per user feedback: we used to say "U says uh, like umbrella" —
-  // Leo's name + "says" is already in the surrounding UX, so dropping
-  // the redundant letter-name announcement keeps the mascot's voice
-  // focused on the sound itself.  Now it's just
-  //   "uh ... umbrella."
-  // which reads as "[sound] followed by [word]" — exactly what kids
-  // need to map the sound onto a real word.
+  // Two modes, controlled by `opts.intro`:
+  //   intro:true  — full task framing.  "What letter makes this sound?
+  //                  'mmm' as in monkey." — used when Leo poses the
+  //                  round question or the kid taps the speaker to
+  //                  re-hear it, so they always know what to do.
+  //   intro:false — bare sound + sample word.  "mmm... as in monkey."
+  //                 used when previewing a single letter card on hover.
   const speakLetterSound = useCallback(
     async ({ letter, phoneme, sampleWord }, opts = {}) => {
       if (!enabled) return;
+      const { intro = false, ...rest } = opts;
       const played = playClipIfAvailable(`letter:${letter}`);
       if (played) {
         await played;
@@ -177,8 +178,11 @@ export function useSpeech({
       // What works: feed Edge the phoneme spelling as plain text
       // ("fff", "buh", "ahh") and let the per-character voice rate
       // in voices.js handle the slowdown.  Ellipsis = natural pause.
-      const phrase = sampleWord ? `${phoneme}... ${sampleWord}.` : `${phoneme}.`;
-      await speak(phrase, opts);
+      const core = sampleWord ? `${phoneme}... as in ${sampleWord}.` : `${phoneme}.`;
+      const phrase = intro
+        ? `What letter makes this sound? ${core} Tap the letter you hear!`
+        : core;
+      await speak(phrase, rest);
     },
     [enabled, speak],
   );
