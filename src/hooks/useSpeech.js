@@ -164,25 +164,30 @@ export function useSpeech({
   //   intro:false — bare sound + sample word.  "mmm... as in monkey."
   //                 used when previewing a single letter card on hover.
   const speakLetterSound = useCallback(
-    async ({ letter, phoneme, sampleWord }, opts = {}) => {
+    async (round, opts = {}) => {
       if (!enabled) return;
       const { intro = false, ...rest } = opts;
-      // Pre-rendered MP3 (Davis voice with IPA SSML) takes priority,
-      // but only if it actually loads — falls through to runtime TTS
-      // otherwise so missing files don't produce silence.
+      const { letter, sampleWord } = round;
+      // The data carries `ttsSpeech` for what gets fed to Edge.  We
+      // accept the legacy `phoneme` key too in case a caller hand-
+      // rolls a round object — letterSounds.js renamed the field but
+      // not every callsite has been migrated.
+      const tts = round.ttsSpeech ?? round.phoneme ?? letter;
+
+      // Pre-rendered MP3 takes priority, but only if it actually
+      // loads — falls through to runtime TTS otherwise so missing
+      // files don't produce silence.
       const playPromise = playClipIfAvailable(`letter:${letter}`);
       if (playPromise) {
         const ok = await playPromise;
         if (ok) return;
       }
-      // Plain text only.  Edge's Read-Aloud endpoint silently fails
-      // when fed inline <phoneme alphabet="ipa"> tags — we tried
-      // routing IPA SSML through the proxy and the whole utterance
-      // came back empty.  Going to fix this with build-time MP3
-      // generation instead (see audio-pipeline/letter-sounds.json).
-      // Until those land, plain phonetic spelling is what reaches
-      // Edge — kids hear "ahh", "buh", etc.
-      const core = sampleWord ? `${phoneme}... as in ${sampleWord}.` : `${phoneme}.`;
+      // Plain text only.  Edge's Read-Aloud endpoint silently strips
+      // inline <phoneme alphabet="ipa"> tags, so SSML isn't an option
+      // through the free proxy.  We feed the hand-tuned ttsSpeech
+      // string and let the carrier phrase ("...as in apple") give the
+      // engine real-English context.
+      const core = sampleWord ? `${tts}... as in ${sampleWord}.` : `${tts}.`;
       const phrase = intro
         ? `What letter makes this sound? ${core} Tap the letter you hear!`
         : core;
