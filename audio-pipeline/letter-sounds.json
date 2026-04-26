@@ -1,0 +1,30 @@
+{
+  "letters": [
+    { "letter": "A", "ipa_sound": "æ",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='æ'>a</phoneme></speak>",         "example_word": "apple",    "filename": "letter-a-sound.mp3" },
+    { "letter": "B", "ipa_sound": "b",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='bʌ'>buh</phoneme></speak>",       "example_word": "ball",     "filename": "letter-b-sound.mp3" },
+    { "letter": "C", "ipa_sound": "k",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='kʌ'>cuh</phoneme></speak>",       "example_word": "cat",      "filename": "letter-c-sound.mp3" },
+    { "letter": "D", "ipa_sound": "d",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='dʌ'>duh</phoneme></speak>",       "example_word": "dog",      "filename": "letter-d-sound.mp3" },
+    { "letter": "E", "ipa_sound": "ɛ",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='ɛ'>e</phoneme></speak>",         "example_word": "egg",      "filename": "letter-e-sound.mp3" },
+    { "letter": "F", "ipa_sound": "f",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='f'>f</phoneme></speak>",         "example_word": "fish",     "filename": "letter-f-sound.mp3" },
+    { "letter": "G", "ipa_sound": "ɡ",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='ɡʌ'>guh</phoneme></speak>",       "example_word": "goat",     "filename": "letter-g-sound.mp3" },
+    { "letter": "H", "ipa_sound": "h",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='hʌ'>huh</phoneme></speak>",       "example_word": "hat",      "filename": "letter-h-sound.mp3" },
+    { "letter": "I", "ipa_sound": "ɪ",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='ɪ'>i</phoneme></speak>",         "example_word": "igloo",    "filename": "letter-i-sound.mp3" },
+    { "letter": "J", "ipa_sound": "dʒ", "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='dʒʌ'>juh</phoneme></speak>",     "example_word": "jam",      "filename": "letter-j-sound.mp3" },
+    { "letter": "K", "ipa_sound": "k",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='kʌ'>kuh</phoneme></speak>",       "example_word": "kite",     "filename": "letter-k-sound.mp3" },
+    { "letter": "L", "ipa_sound": "l",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='l'>l</phoneme></speak>",         "example_word": "lion",     "filename": "letter-l-sound.mp3" },
+    { "letter": "M", "ipa_sound": "m",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='m'>m</phoneme></speak>",         "example_word": "moon",     "filename": "letter-m-sound.mp3" },
+    { "letter": "N", "ipa_sound": "n",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='n'>n</phoneme></speak>",         "example_word": "nest",     "filename": "letter-n-sound.mp3" },
+    { "letter": "O", "ipa_sound": "ɒ",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='ɒ'>o</phoneme></speak>",         "example_word": "octopus",  "filename": "letter-o-sound.mp3" },
+    { "letter": "P", "ipa_sound": "p",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='pʌ'>puh</phoneme></speak>",       "example_word": "pig",      "filename": "letter-p-sound.mp3" },
+    { "letter": "Q", "ipa_sound": "kw", "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='kwʌ'>kwuh</phoneme></speak>",     "example_word": "queen",    "filename": "letter-q-sound.mp3" },
+    { "letter": "R", "ipa_sound": "ɹ",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='ɹ'>r</phoneme></speak>",         "example_word": "rabbit",   "filename": "letter-r-sound.mp3" },
+    { "letter": "S", "ipa_sound": "s",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='s'>s</phoneme></speak>",         "example_word": "snake",    "filename": "letter-s-sound.mp3" },
+    { "letter": "T", "ipa_sound": "t",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='tʌ'>tuh</phoneme></speak>",       "example_word": "tiger",    "filename": "letter-t-sound.mp3" },
+    { "letter": "U", "ipa_sound": "ʌ",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='ʌ'>u</phoneme></speak>",         "example_word": "umbrella", "filename": "letter-u-sound.mp3" },
+    { "letter": "V", "ipa_sound": "v",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='v'>v</phoneme></speak>",         "example_word": "violin",   "filename": "letter-v-sound.mp3" },
+    { "letter": "W", "ipa_sound": "w",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='wʌ'>wuh</phoneme></speak>",       "example_word": "whale",    "filename": "letter-w-sound.mp3" },
+    { "letter": "X", "ipa_sound": "ks", "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='ks'>x</phoneme></speak>",        "example_word": "fox",      "filename": "letter-x-sound.mp3" },
+    { "letter": "Y", "ipa_sound": "j",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='jʌ'>yuh</phoneme></speak>",       "example_word": "yellow",   "filename": "letter-y-sound.mp3" },
+    { "letter": "Z", "ipa_sound": "z",  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='z'>z</phoneme></speak>",         "example_word": "zebra",    "filename": "letter-z-sound.mp3" }
+  ]
+}

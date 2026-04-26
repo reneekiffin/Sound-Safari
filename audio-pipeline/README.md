@@ -7,7 +7,49 @@ under `public/audio/...` and the app plays them via the existing
 `src/hooks/useAudioClips.js` — no runtime TTS call, no quota concerns,
 deterministic playback.
 
-## Letters — `letters.json` + `generate_letters.py`
+## Letter SOUNDS via SSML — `letter-sounds.json` + `generate_letter_sounds.py`
+
+The current canonical generator for letter sounds.  Driven by
+`letter-sounds.json`, where each entry carries an SSML payload built
+around `<phoneme alphabet="ipa" ph="...">` so Edge produces the actual
+phoneme rather than guessing at a phonetic spelling:
+
+```json
+{
+  "letter": "S",
+  "ipa_sound": "s",
+  "ssml": "<speak version='1.0' xml:lang='en-US'><phoneme alphabet='ipa' ph='s'>s</phoneme></speak>",
+  "example_word": "snake",
+  "filename": "letter-s-sound.mp3"
+}
+```
+
+This fixes the runtime issues we kept hitting — Edge reading "sss" as
+"ess ess ess", "kuh" as "coo", "puh" as "poo".  IPA tags remove the
+guesswork.
+
+Voice is `en-US-DavisNeural` (Leo) for every letter.
+
+Run from the `audio-pipeline/` directory:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate          # macOS / Linux
+# .venv\Scripts\activate           # Windows
+pip install edge-tts
+
+python generate_letter_sounds.py
+```
+
+Files land under `public/audio/letters/sounds/` using the `filename`
+from each entry.  The runtime registers `letter:a` → `letter:z` clip
+keys at boot (see `src/main.jsx`); when a clip plays cleanly it's used
+in place of live TTS, when it errors (file missing) the runtime falls
+through to the proxy.  Safe to ship before generating — kids hear
+runtime TTS until the MP3s land, then the higher-quality pre-rendered
+audio takes over automatically.
+
+## Legacy generator — `letters.json` + `generate_letters.py`
 
 Generates **two MP3 files per letter** (52 total for A-Z):
 
