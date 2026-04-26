@@ -18,7 +18,7 @@
     { "letter": "O", "display": "O",  "tts_speech": "uh",    "example_word": "octopus",  "filename": "letter-o-sound.mp3" },
     { "letter": "P", "display": "Puh",  "tts_speech": "puh",   "example_word": "pig",      "filename": "letter-p-sound.mp3" },
     { "letter": "Q", "display": "Kwuh", "tts_speech": "kwuh",  "example_word": "queen",    "filename": "letter-q-sound.mp3" },
-    { "letter": "R", "display": "Arr",  "tts_speech": "are",   "example_word": "rabbit",   "filename": "letter-r-sound.mp3" },
+    { "letter": "R", "display": "Arr",  "tts_speech": "arrr",   "example_word": "rabbit",   "filename": "letter-r-sound.mp3" },
     { "letter": "S", "display": "Sss",  "tts_speech": "isssss", "example_word": "snake",    "filename": "letter-s-sound.mp3" },
     { "letter": "T", "display": "Tuh",  "tts_speech": "tuh",   "example_word": "tiger",    "filename": "letter-t-sound.mp3" },
     { "letter": "U", "display": "Uh",   "tts_speech": "uh",    "example_word": "umbrella", "filename": "letter-u-sound.mp3" },
