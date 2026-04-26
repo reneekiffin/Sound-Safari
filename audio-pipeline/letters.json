@@ -62,7 +62,7 @@
   {
     "letter": "G",
     "letter_name_tts_input": "gee",
-    "letter_sound_tts_input": "guh",
+    "letter_sound_tts_input": "gah",
     "ipa_sound": "/ɡ/",
     "filename_name": "letter-g-name.mp3",
     "filename_sound": "letter-g-sound.mp3",
@@ -122,7 +122,7 @@
   {
     "letter": "M",
     "letter_name_tts_input": "em",
-    "letter_sound_tts_input": "emmm",
+    "letter_sound_tts_input": "ehm",
     "ipa_sound": "/m/",
     "filename_name": "letter-m-name.mp3",
     "filename_sound": "letter-m-sound.mp3",
@@ -172,7 +172,7 @@
   {
     "letter": "R",
     "letter_name_tts_input": "ar",
-    "letter_sound_tts_input": "rrrr",
+    "letter_sound_tts_input": "are",
     "ipa_sound": "/ɹ/",
     "filename_name": "letter-r-name.mp3",
     "filename_sound": "letter-r-sound.mp3",
