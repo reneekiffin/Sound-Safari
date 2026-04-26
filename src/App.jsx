@@ -142,17 +142,21 @@ export default function App() {
   }, [endScreen, speak]);
 
   // Fix for the "Play Again" blank screen:
-  //   Previously we bounced hub -> game with a timeout, but the underlying
-  //   game component retained done=true from the previous session and
-  //   rendered null.  Now we bump sessionKey, which is part of the
-  //   component's key, so the old instance unmounts and a fresh one
-  //   mounts with clean state.
+  //   Just bumping the sessionKey wasn't enough — AnimatePresence
+  //   (mode="wait") was holding the new mount behind the old game's
+  //   exit animation while the old game still rendered null (done=true),
+  //   leaving a blank frame that didn't recover for some users.  We
+  //   now bounce through the hub for one tick: the game tree fully
+  //   unmounts, then mounts fresh on the next tick with a new key.
   const handleReplay = () => {
     const nextGameId = endScreen?.gameId;
     setEndScreen(null);
     if (nextGameId) {
-      setSessionKey((k) => k + 1);
-      setView({ name: VIEW_GAME, gameId: nextGameId });
+      setView({ name: VIEW_HUB });
+      setTimeout(() => {
+        setSessionKey((k) => k + 1);
+        setView({ name: VIEW_GAME, gameId: nextGameId });
+      }, 0);
     }
   };
 

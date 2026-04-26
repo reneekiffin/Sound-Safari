@@ -33,7 +33,7 @@ const EASY = [
       { word: 'duck', emoji: '🦆', answer: 'both' },
       { word: 'fish', emoji: '🐠', answer: 'left' },
       { word: 'butterfly', emoji: '🦋', answer: 'right' },
-      { word: 'seagull', emoji: '🕊️', answer: 'both' },
+      { word: 'swan', emoji: '🦢', answer: 'both' },
     ],
   },
   {
