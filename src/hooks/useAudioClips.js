@@ -14,9 +14,10 @@ import { Howl } from 'howler';
 //
 // To wire in a batch, call registerClipBundle({ 'letter:a': '/audio/a.mp3', ...}).
 //
-// playClipIfAvailable(key) returns a Promise<void> that resolves when the
-// clip finishes, or null if no clip is registered (so callers fall back to
-// TTS).
+// playClipIfAvailable(key) returns a Promise<boolean> — resolves to true
+// when the clip plays cleanly, false on load/play error so the caller can
+// fall through to TTS.  Returns null synchronously when no clip is
+// registered for the key.
 
 const _clips = new Map();
 const _howls = new Map();
@@ -52,8 +53,13 @@ export function playClipIfAvailable(key) {
   if (!howl) return null;
   return new Promise((resolve) => {
     const id = howl.play();
-    howl.once('end', () => resolve(), id);
-    howl.once('loaderror', () => resolve(), id);
-    howl.once('playerror', () => resolve(), id);
+    howl.once('end', () => resolve(true), id);
+    // Resolve to FALSE (not undefined) on errors so callers can fall
+    // through to TTS instead of silently dropping the prompt.  This
+    // matters when registerClipBundle() points at MP3s that haven't
+    // been generated yet — we want the kid to still hear the sound
+    // via runtime TTS rather than silence.
+    howl.once('loaderror', () => resolve(false), id);
+    howl.once('playerror', () => resolve(false), id);
   });
 }

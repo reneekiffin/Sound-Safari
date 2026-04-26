@@ -100,12 +100,15 @@ export function useSpeech({
       if (typeof window === 'undefined') return;
       if (!text) return;
 
-      // Priority 1: a registered recorded clip for this key.
+      // Priority 1: a registered recorded clip for this key.  Returns
+      // null if no clip is registered, otherwise a Promise<boolean>;
+      // true means it played cleanly, false means load/play failed
+      // (file missing etc.) and we should fall through to TTS.
       if (opts.clipKey) {
-        const played = playClipIfAvailable(opts.clipKey);
-        if (played) {
-          await played;
-          return;
+        const playPromise = playClipIfAvailable(opts.clipKey);
+        if (playPromise) {
+          const ok = await playPromise;
+          if (ok) return;
         }
       }
 
@@ -164,10 +167,13 @@ export function useSpeech({
     async ({ letter, phoneme, sampleWord }, opts = {}) => {
       if (!enabled) return;
       const { intro = false, ...rest } = opts;
-      const played = playClipIfAvailable(`letter:${letter}`);
-      if (played) {
-        await played;
-        return;
+      // Pre-rendered MP3 (Davis voice with IPA SSML) takes priority,
+      // but only if it actually loads — falls through to runtime TTS
+      // otherwise so missing files don't produce silence.
+      const playPromise = playClipIfAvailable(`letter:${letter}`);
+      if (playPromise) {
+        const ok = await playPromise;
+        if (ok) return;
       }
       // Plain text only.  Edge's standard neural voices ignore
       // <phoneme> SSML tags inconsistently — that's why kids were
@@ -194,10 +200,9 @@ export function useSpeech({
       for (let i = 0; i < phonemes.length; i += 1) {
         const p = phonemes[i];
         const clip = playClipIfAvailable(`phoneme:${p}`);
-        if (clip) {
-          // eslint-disable-next-line no-await-in-loop
-          await clip;
-        } else {
+        // eslint-disable-next-line no-await-in-loop
+        const ok = clip ? await clip : false;
+        if (!ok) {
           const text = stretched ? stretchPhoneme(p) : p;
           // eslint-disable-next-line no-await-in-loop
           await speak(text, { interrupt: i === 0, rate: 0.8, ...opts });
