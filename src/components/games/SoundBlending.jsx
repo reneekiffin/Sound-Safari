@@ -7,13 +7,37 @@ import GameShell from './GameShell.jsx';
 import { SOUND_BLENDING_ROUNDS } from '../../data/soundBlending.js';
 import { pickSession } from '../../data/session.js';
 import { useAudio } from '../../hooks/useAudio.js';
-import { useSpeech, stretchPhoneme, ipaForLetter } from '../../hooks/useSpeech.js';
+import { useSpeech } from '../../hooks/useSpeech.js';
 import { getGame } from '../../data/games.js';
 import { pickCheer, pickWrongCheer, pickFinishCheer, CORRECT_CHEERS } from '../../data/cheers.js';
 
 // Sound Blending (Momo the Monkey). See data/soundBlending.js for shape.
 
 const ROUNDS_PER_SESSION = 10;
+
+// Spoken form of each phoneme/grapheme used in the data.  Tuned for
+// Edge neural voices: vowels are short open syllables, stops keep the
+// "uh" tail kids learn from phonics teachers ("buh, ah, tuh"), and
+// sustainable consonants get tripled letters that Edge reads as a
+// stretched sound rather than letter names.
+//
+//   ant ['a','n','t']   → "ah... nnn... tuh"
+//   dog ['d','o','g']   → "duh... aw... guh"
+//   frog ['f','r','og'] → "fff... rrr... awg"
+const PHONEME_SPEECH = {
+  // Short vowels
+  a: 'ah', e: 'eh', i: 'ih', o: 'aw', u: 'uh',
+  // Consonants — stops keep the schwa tail; continuants are stretched.
+  b: 'buh', c: 'kuh', d: 'duh', f: 'fff', g: 'guh',
+  h: 'huh', j: 'juh', k: 'kuh', l: 'lll', m: 'mmm',
+  n: 'nnn', p: 'puh', r: 'rrr', s: 'sss', t: 'tuh',
+  v: 'vvv', w: 'wuh', x: 'ks', y: 'yuh', z: 'zzz',
+  // Digraphs / common rimes
+  sh: 'sh', ch: 'ch', th: 'th', ng: 'ng', qu: 'kwuh',
+  ai: 'ay', ee: 'ee', oo: 'oo', oa: 'oh', ou: 'ow',
+  ar: 'ar', or: 'or', ow: 'ow', aw: 'aw', ck: 'kuh',
+  er: 'er', ea: 'ee', og: 'awg', ake: 'ayk', nt: 'nt',
+};
 
 export default function SoundBlending({ profile, totalStars, difficulty, recent, onExit, onFinish, onOpenSettings, audioEnabled, sfxEnabled, voiceURI, cloud }) {
   const game = getGame('sound-blending');
@@ -31,37 +55,29 @@ export default function SoundBlending({ profile, totalStars, difficulty, recent,
   const [done, setDone] = useState(false);
   const [animatedIndex, setAnimatedIndex] = useState(-1);
 
-  const { speak, speakPhonemeSequence } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud, speaker: 'monkey' });
+  const { speak } = useSpeech({ enabled: audioEnabled, preferredVoiceURI: voiceURI, cloud, speaker: 'monkey' });
   const { play } = useAudio({ enabled: sfxEnabled });
 
   const round = rounds[index];
 
-  // Build the blend phrase as a SINGLE utterance so Momo's ElevenLabs
-  // voice carries natural prosody across all the sounds.  The previous
-  // approach made one API call per phoneme (4-5 calls per round) which
-  // chopped the rhythm and burned through the rate limit fast.  Now:
-  //   "buh ... aaa ... tuh ... cat."
-  // — one call, one cache entry, smooth delivery.
+  // Build the blend phrase as a SINGLE utterance so Momo's voice
+  // carries natural prosody across all the sounds.  Plain text only —
+  // we tried SSML <phoneme alphabet="ipa"> first but Edge ignored the
+  // IPA tags and read "a-n-t" as the letter names "A, N, T".  The
+  // map below converts each grapheme/rime to a syllable Edge will
+  // speak as a recognisable sound:
+  //   ant    → "ah... nnn... tuh... ant."
+  //   dog    → "duh... aw... guh... dog."
+  // Ellipsis between sounds gives the natural pause; the final "answer"
+  // word is the smooth blended target so kids hear what to listen for.
   const playSequence = async ({ includeBlend = true } = {}) => {
     if (!round) return;
 
-    // Build SSML so Edge TTS produces the actual phoneme sounds rather
-    // than reading "aaa" / "buh" as letter names ("ay ay ay" / "buh-h").
-    // Vowels get a -30% prosody so they're sustained; consonants stay
-    // brief by nature.  Falls back to plain stretchPhoneme spelling for
-    // any phoneme without an IPA mapping (e.g. multi-letter rimes).
-    const renderPhoneme = (p) => {
-      const ipa = ipaForLetter(p);
-      if (!ipa) return stretchPhoneme(p);
-      const isVowel = /^[aeiou]$/i.test(p) || /^(ai|ee|oo|oa|ou)$/i.test(p);
-      const tag = `<phoneme alphabet="ipa" ph="${ipa}">${p}</phoneme>`;
-      return isVowel ? `<prosody rate="-30%">${tag}</prosody>` : tag;
-    };
     const phonemeText = round.phonemes
-      .map(renderPhoneme)
-      .join('<break time="450ms"/>');
+      .map((p) => PHONEME_SPEECH[p] ?? p)
+      .join('... ');
     const fullText = includeBlend
-      ? `${phonemeText}<break time="700ms"/>${round.answer}.`
+      ? `${phonemeText}... ${round.answer}.`
       : phonemeText;
 
     // Highlight phonemes on a timer that runs alongside the speech.
@@ -103,7 +119,11 @@ export default function SoundBlending({ profile, totalStars, difficulty, recent,
     if (answered || done) return;
     if (opt.word === round.answer) {
       play('correct');
-      speak(`${pickCheer(CORRECT_CHEERS)} ${round.answer}!`);
+      // Just the cheer — the answer word was being repeated AFTER the
+      // celebration popup, which felt like a stutter.  The popup +
+      // visual reinforcement is enough; the kid already heard the
+      // blended word during the round prompt.
+      speak(pickCheer(CORRECT_CHEERS));
       setAnswered(true);
       setCelebrateRound(true);
       setScore((s) => s + 1);
