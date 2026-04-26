@@ -19,13 +19,14 @@ const EASY = [
   //     vowel sound; "aaa" was getting read as "ay-ay-ay" before)
   //   - sustained consonants where Edge would otherwise letter-name
   //     each character get prepended with the letter-name vowel:
-  //     'ellll' (sounds like "ell") / 'emmm' / 'ennn'.  Without the
+  //     'ellll' (sounds like "ell") / 'ehm' / 'ennn'.  Without the
   //     leading vowel Edge says "L L L" instead of a sustained ell.
   //   - other sustained consonants ('sss', 'fff') read fine as-is
   //     because Edge handles them as fricatives.
-  //   - stops: syllable form ('buh', 'tuh', 'puh') reads correctly.
+  //   - stops: real-word-shaped syllable ('gah' not 'guh', 'are' not
+  //     'rrr') keeps Edge from spelling out the letters one by one.
   { letter: 'a', phoneme: 'ahh', sampleWord: 'apple', options: ['a', 'o', 'u'] },
-  { letter: 'm', phoneme: 'emmm', sampleWord: 'monkey', options: ['m', 's', 't'] },
+  { letter: 'm', phoneme: 'ehm', sampleWord: 'monkey', options: ['m', 's', 't'] },
   { letter: 's', phoneme: 'sss', sampleWord: 'snake', options: ['s', 'f', 'm'] },
   { letter: 't', phoneme: 'tuh', sampleWord: 'tiger', options: ['t', 'b', 'd'] },
   { letter: 'p', phoneme: 'puh', sampleWord: 'panda', options: ['p', 't', 'k'] },
@@ -33,12 +34,12 @@ const EASY = [
   { letter: 'n', phoneme: 'ennn', sampleWord: 'nest', options: ['n', 'm', 'r'] },
   { letter: 'o', phoneme: 'oh', sampleWord: 'octopus', options: ['o', 'u', 'a'] },
   { letter: 'b', phoneme: 'buh', sampleWord: 'bear', options: ['b', 'd', 'p'] },
-  { letter: 'g', phoneme: 'guh', sampleWord: 'goat', options: ['g', 'k', 'j'] },
+  { letter: 'g', phoneme: 'gah', sampleWord: 'goat', options: ['g', 'k', 'j'] },
   { letter: 'd', phoneme: 'duh', sampleWord: 'dog', options: ['d', 'b', 'p'] },
   { letter: 'c', phoneme: 'kuh', sampleWord: 'cat', options: ['c', 'g', 't'] },
   { letter: 'e', phoneme: 'eh', sampleWord: 'egg', options: ['e', 'a', 'i'] },
   { letter: 'l', phoneme: 'ellll', sampleWord: 'lion', options: ['l', 'n', 'r'] },
-  { letter: 'r', phoneme: 'rrr', sampleWord: 'rabbit', options: ['r', 'l', 'w'] },
+  { letter: 'r', phoneme: 'are', sampleWord: 'rabbit', options: ['r', 'l', 'w'] },
   { letter: 'f', phoneme: 'ffff', sampleWord: 'fish', options: ['f', 's', 'v'] },
   { letter: 'h', phoneme: 'huh', sampleWord: 'hat', options: ['h', 'f', 'b'] },
   { letter: 'u', phoneme: 'uh', sampleWord: 'umbrella', options: ['u', 'o', 'a'] },
@@ -56,9 +57,9 @@ const MEDIUM = [
   { letter: 'i', phoneme: 'ih', sampleWord: 'insect', options: ['i', 'e', 'a', 'u'] },
   { letter: 'u', phoneme: 'uh', sampleWord: 'under', options: ['u', 'o', 'a', 'e'] },
   { letter: 'f', phoneme: 'ffff', sampleWord: 'frog', options: ['f', 'v', 's', 'h'] },
-  { letter: 'r', phoneme: 'rrr', sampleWord: 'rainbow', options: ['r', 'w', 'l', 'n'] },
+  { letter: 'r', phoneme: 'are', sampleWord: 'rainbow', options: ['r', 'w', 'l', 'n'] },
   { letter: 'l', phoneme: 'ellll', sampleWord: 'leaf', options: ['l', 'r', 'n', 'w'] },
-  { letter: 'g', phoneme: 'guh', sampleWord: 'giraffe (hard g)', options: ['g', 'k', 'c', 'j'] },
+  { letter: 'g', phoneme: 'gah', sampleWord: 'giraffe (hard g)', options: ['g', 'k', 'c', 'j'] },
   { letter: 'n', phoneme: 'ennn', sampleWord: 'nut', options: ['n', 'm', 'r', 'l'] },
 ];
 
