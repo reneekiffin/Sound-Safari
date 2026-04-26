@@ -52,14 +52,21 @@ export function playClipIfAvailable(key) {
   const howl = getHowl(key);
   if (!howl) return null;
   return new Promise((resolve) => {
+    let settled = false;
+    const finish = (ok) => {
+      if (settled) return;
+      settled = true;
+      resolve(ok);
+    };
     const id = howl.play();
-    howl.once('end', () => resolve(true), id);
-    // Resolve to FALSE (not undefined) on errors so callers can fall
-    // through to TTS instead of silently dropping the prompt.  This
-    // matters when registerClipBundle() points at MP3s that haven't
-    // been generated yet — we want the kid to still hear the sound
-    // via runtime TTS rather than silence.
-    howl.once('loaderror', () => resolve(false), id);
-    howl.once('playerror', () => resolve(false), id);
+    howl.once('end', () => finish(true), id);
+    // loaderror / playerror events on an unloaded Howl fire WITHOUT a
+    // play-instance id, so listeners registered with `id` never match
+    // and the Promise hangs forever — which then deadlocks the caller
+    // (await in useSpeech.speakLetterSound).  Skip the id filter here
+    // so a 404'd MP3 always resolves, letting callers fall through to
+    // runtime TTS.
+    howl.once('loaderror', () => finish(false));
+    howl.once('playerror', () => finish(false));
   });
 }
